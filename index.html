@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Alertes commerciales — Wesh Grow</title>
+<style>
+  :root{
+    --bg:#F6F4EC; --surface:#FFFFFF; --ink:#20281F; --muted:#6B7568;
+    --primary:#1F3A2E; --primary-light:#2E5339; --accent:#BE8C33;
+    --danger:#B5432E; --danger-bg:#F7E4DF; --warning:#C9932E; --warning-bg:#FBF0DA;
+    --border:#E2DFD3; --ok-bg:#E6EEE7;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.45;}
+  h1,h2,h3{font-family:Georgia,"Iowan Old Style",serif;margin:0;color:var(--primary);}
+  .mono{font-variant-numeric:tabular-nums;}
+  #app{max-width:1400px;margin:0 auto;padding:24px 20px 60px;}
+
+  .header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;margin-bottom:20px;border-bottom:2px solid var(--primary);padding-bottom:16px;}
+  .header h1{font-size:26px;}
+  .header .sub{color:var(--muted);font-size:13px;margin-top:4px;}
+  .header .meta{text-align:right;font-size:12px;color:var(--muted);}
+  .header .meta b{color:var(--ink);}
+
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:22px;}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+  .kpi .label{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:6px;}
+  .kpi .value{font-size:24px;font-weight:600;color:var(--primary);}
+  .kpi.danger .value{color:var(--danger);}
+  .kpi.accent .value{color:var(--accent);}
+
+  .layout{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start;}
+  @media (max-width:900px){.layout{grid-template-columns:1fr;}}
+
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;}
+  .panel h3{font-size:15px;margin-bottom:10px;}
+  .panel p.hint{color:var(--muted);font-size:12px;margin:4px 0 10px;}
+  .hl-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;}
+  .hl-list li{font-size:14px;padding:10px 14px;background:#F7F5EC;border-radius:8px;border-left:3px solid var(--accent);}
+  .hl-icon{margin-right:4px;}
+
+  button{cursor:pointer;font-family:inherit;font-size:13px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--ink);padding:7px 12px;transition:.15s;}
+  button:hover{border-color:var(--primary);color:var(--primary);}
+  button.primary{background:var(--primary);color:#fff;border-color:var(--primary);}
+  button.primary:hover{background:var(--primary-light);color:#fff;}
+  button.danger-btn{color:var(--danger);border-color:var(--danger);}
+  button.danger-btn:hover{background:var(--danger-bg);}
+  button:disabled{opacity:.5;cursor:not-allowed;}
+  input[type=file]{font-size:12px;}
+  input[type=text],input[type=number],select{font-family:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--ink);width:100%;}
+  label.field{display:block;font-size:12px;color:var(--muted);margin:8px 0 3px;}
+
+  .import-log{font-size:12px;background:#FAFAF5;border:1px dashed var(--border);border-radius:6px;padding:8px;margin-top:8px;max-height:140px;overflow:auto;}
+  .import-log div{margin-bottom:3px;}
+
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;}
+  .tabs{display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .tab-btn{background:none;border:none;border-bottom:3px solid transparent;border-radius:0;padding:8px 14px;font-size:13px;color:var(--muted);font-weight:600;}
+  .tab-btn:hover{color:var(--primary);border-color:transparent;}
+  .tab-btn.active{color:var(--primary);border-bottom-color:var(--primary);}
+  .tab-btn .count{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:var(--border);color:var(--ink);font-size:11px;}
+  .tab-btn.active .count{background:var(--primary);color:#fff;}
+  .tab-desc{font-size:12px;color:var(--muted);margin:-6px 0 12px;}
+  .controls select, .controls input[type=text]{width:auto;min-width:160px;}
+  .chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;border:1px solid var(--border);font-size:12px;cursor:pointer;background:#fff;}
+  .chip.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+
+  table{width:100%;border-collapse:collapse;background:var(--surface);border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+  thead th{position:sticky;top:0;background:var(--primary);color:#fff;font-size:11px;text-transform:uppercase;letter-spacing:.03em;padding:10px 8px;text-align:left;cursor:pointer;white-space:nowrap;}
+  thead th:hover{background:var(--primary-light);}
+  tbody td{padding:9px 8px;border-top:1px solid var(--border);font-size:13px;vertical-align:top;}
+  tbody tr:hover{background:#FAFAF5;}
+  tbody tr.paused{opacity:.5;}
+  .badge{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;margin-right:3px;white-space:nowrap;}
+  .badge.inactive{background:var(--danger-bg);color:var(--danger);}
+  .badge.basket{background:var(--warning-bg);color:var(--warning);}
+  .badge.revenue{background:var(--warning-bg);color:#8a5a1a;}
+  .badge.ok{background:var(--ok-bg);color:var(--primary);}
+  .badge.badge-never{background:#7A2418;color:#fff;}
+  .badge.badge-low{background:#8A5A0F;color:#fff;}
+  .cs-table{table-layout:fixed;}
+  .cs-table td, .cs-table th{border-left:1px solid var(--border);}
+  .cs-table td:first-child, .cs-table th:first-child{border-left:none;}
+  .cs-cell{vertical-align:top;padding-left:12px;padding-right:12px;}
+  .cs-count{font-size:10px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);font-weight:700;margin-bottom:6px;}
+  .cs-list{display:flex;flex-direction:column;gap:4px;}
+  .cs-list .badge{display:block;width:fit-content;max-width:100%;white-space:normal;line-height:1.35;font-size:11px;padding:3px 8px;}
+  .cs-active{background:rgba(31,58,46,.035);}
+  .cs-stopped{background:rgba(138,90,15,.05);}
+  .cs-never{background:rgba(122,36,24,.045);}
+  .score-pill{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:50%;font-weight:700;font-size:12px;background:var(--border);color:var(--muted);}
+  .score-pill.hi{background:var(--danger);color:#fff;}
+  .score-pill.mid{background:var(--warning);color:#fff;}
+  .row-actions button{font-size:11px;padding:4px 8px;}
+  .group-select{font-size:12px;padding:4px 6px;}
+  .empty-state{text-align:center;padding:60px 20px;color:var(--muted);}
+  .empty-state h2{color:var(--muted);margin-bottom:8px;}
+  .small{font-size:12px;color:var(--muted);}
+  .row-detail{background:#FBFAF5;font-size:12px;padding:10px 14px;border-top:1px solid var(--border);}
+  .row-detail .cols{display:flex;gap:24px;flex-wrap:wrap;}
+  .row-detail .col{min-width:160px;}
+  .row-detail .col b{display:block;margin-bottom:3px;color:var(--primary);}
+  .classif-table{max-height:280px;overflow:auto;border:1px solid var(--border);border-radius:6px;}
+  .classif-table table{border:none;border-radius:0;}
+  .classif-table thead th{position:sticky;top:0;}
+  details summary{cursor:pointer;color:var(--primary);font-size:13px;font-weight:600;margin-bottom:8px;}
+  .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;}
+  .review-list{font-size:12px;background:var(--warning-bg);border-radius:6px;padding:8px;margin-top:8px;}
+  .review-list .item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(0,0,0,.06);}
+  .review-list .item:last-child{border-bottom:none;}
+  footer.credits{margin-top:30px;text-align:center;color:var(--muted);font-size:11px;}
+</style>
+</head>
+<body>
+<div id="loginScreen" style="max-width:420px;margin:80px auto;padding:28px;background:#FFFFFF;border:1px solid #E2DFD3;border-radius:12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;text-align:center;">
+  <h2 style="font-family:Georgia,'Iowan Old Style',serif;color:#1F3A2E;margin-bottom:8px;">Wesh Grow — Alertes commerciales</h2>
+  <p style="color:#6B7568;font-size:13px;margin-bottom:20px;">Connecte-toi avec ton compte Google pour ouvrir le tableau de bord. L'accès est géré par le partage des Google Sheets, pas par ce bouton.</p>
+  <button id="loginBtn" style="padding:10px 20px;background:#1F3A2E;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer;">Se connecter avec Google</button>
+  <div id="loginError" style="color:#B5432E;font-size:12px;margin-top:14px;display:none;"></div>
+</div>
+
+<div id="app" style="display:none;">
+  <div class="header">
+    <div>
+      <h1>Alertes commerciales</h1>
+      <div class="sub">Wesh Grow — clients à risque de décrochage, mis à jour à chaque import</div>
+    </div>
+    <div class="meta" id="headerMeta">Chargement…</div>
+  </div>
+
+  <div id="kpis" class="kpis"></div>
+
+  <div class="layout">
+    <div class="sidebar">
+      <div class="panel" style="padding:10px 14px;">
+        <button class="primary" id="syncSheetsBtn" style="width:100%;">Actualiser depuis Google Sheets</button>
+        <div class="import-log" id="importLog" style="display:none;"></div>
+      </div>
+
+      <div class="panel" id="reviewPanel" style="display:none;">
+        <h3>Nouveaux clients à classer</h3>
+        <p class="hint">Détectés à l'import, classés « Restaurant » par défaut — ajuste si besoin, ou clique "Valider" si c'est correct.</p>
+        <div class="review-list" id="reviewList"></div>
+      </div>
+
+      <div class="panel" id="pausedPanel" style="display:none;">
+        <details>
+          <summary>Clients en pause (<span id="pausedCount">0</span>)</summary>
+          <p class="hint">Mis en pause depuis n'importe quel onglet — ils n'apparaissent plus dans les alertes tant qu'ils ne sont pas réactivés.</p>
+          <div class="review-list" id="pausedList"></div>
+        </details>
+      </div>
+
+      <div class="panel">
+        <details>
+          <summary>Classification des clients (<span id="clientCount">0</span>)</summary>
+          <p class="hint">Change le groupe d'un client : tout se recalcule automatiquement.</p>
+          <input type="text" id="classifSearchInput" placeholder="Rechercher un client…" style="margin-bottom:8px;">
+          <div class="classif-table"><table id="classifTable"><thead><tr><th>Client</th><th>Groupe</th></tr></thead><tbody></tbody></table></div>
+        </details>
+      </div>
+
+      <div class="panel">
+        <h3>Exporter les données</h3>
+        <p class="hint">Télécharge une copie des données actuelles (utile pour une sauvegarde ou un partage hors-ligne).</p>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <button id="exportRowsBtn">Exporter les ventes (CSV)</button>
+          <button id="exportClassifBtn">Exporter la classification (CSV)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="tabs" id="tabsBar"></div>
+      <div class="tab-desc" id="tabDesc"></div>
+      <div id="tabSettingsArea"></div>
+      <div class="controls">
+        <input type="text" id="searchInput" placeholder="Rechercher un client…">
+        <select id="groupFilter">
+          <option value="">Tous les groupes</option>
+          <option value="Restaurant">Restaurant</option>
+          <option value="Traiteur">Traiteur</option>
+          <option value="Grossiste">Grossiste</option>
+          <option value="Metro">Metro</option>
+        </select>
+        <select id="sortSelect">
+          <option value="days">Trier : dernière commande</option>
+          <option value="ca">Trier : CA total</option>
+          <option value="name">Trier : nom</option>
+        </select>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;">
+          <input type="checkbox" id="showPausedChk"> Afficher les clients en pause
+        </label>
+      </div>
+      <div id="tableWrap"></div>
+    </div>
+  </div>
+  <footer class="credits">Ventes lues en direct depuis le Sheet ERP ; classification/paramètres/pauses partagés via Google Sheets, accès géré par Google. Connecté en tant que <span id="footerUser"></span>.</footer>
+</div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+const REF_VARIETY = {"1ML2YPY3":"Autres fleurs comestibles","238422":"Petit pois Affila","26071":"Fleurs de tagète","26283":"Fleurs de pensées","299060":"Basilic Genovese","4WRNMYPX":"Fenouil bronze","76VJNP3C":"Mix Shiso","826221":"Radis Daikon","826222":"Petit pois Affila","826223":"Oseille veinée","826225":"Mélisse citron","826226":"Hysope anisée (Atsina)","826227":"Moutarde Wasabina","826228":"Coriandre Goa","826231":"Shiso rouge","826253":"Shiso vert","826254":"Bourrache","826255":"Livèche","893259":"Oxalis pourpre","AGQDHZRJ":"Fleurs de pensées","AICH-S":"Ail","AICHXS":"Ail (Rock Chives)","ALMA":"Autres fleurs comestibles","AMPU-COL":"Amaranthe pourpre","AMPU-S":"Amaranthe pourpre","AMPU-XS":"Amaranthe pourpre","AMPU-XS16":"Amaranthe pourpre","BALE-S":"Basilic citron","BASG-S":"Basilic Genovese","BASG-XS":"Basilic Genovese","BASG-XS16":"Basilic Genovese","BATA-S":"Basilic thaï","BLCO":"Autres fleurs comestibles","BOBL-S":"Bourrache","BOBL-XS16":"Bourrache","BOBLXS":"Bourrache","CAJD-S":"Carotte","CEDR-S":"Cédrèle (Toona)","CEDR-XS":"Cédrèle (Toona)","CEDR-XS16":"Cédrèle (Toona)","CJ7G8SK4":"Radis Daikon Chilli","CL-MIFL":"Mix de fleurs","COLIMIXMUSTARD":"Moutarde Mix","COLIS-RADIS-S-PARIS":"Radis Daikon","COLIS-WASAB-S-PARIS":"Moutarde Wasabina","COLISCEDR-S-PARIS":"Cédrèle (Toona)","COLISFRILL-S-PARIS":"Moutarde Mix","COLISGOA-S-PARIS":"Coriandre Goa","COLISHVE-S-PARIS":"Shiso vert","COLISHYAN-S-PARIS":"Hysope anisée (Atsina)","COLISJESSY":"Mix variétés","COLISMECI-S-PARIS":"Mélisse citron","COLISMIZUNA-S-PARIS":"Mizuna vert","COLISNAAM-S-PARIS":"Capucine (Zori)","COLISOSRLS-PARIS":"Oseille veinée","COLISPOIS-S-PARIS":"Petit pois Affila","COLISRARIS-S-PARIS":"Radis pourpre (Sakura)","COLISRARIXS":"Radis pourpre (Sakura)","COLISSHRE-S-PARIS":"Shiso rouge","COLISSPEA-S-PARIS":"Petit pois Affila","COSP-S":"Coriandre Goa","COSP-XS":"Coriandre Goa","COSP-XS16":"Coriandre Goa","EKPR":"Autres fleurs comestibles","EMEX-S":"Estragon Mexicain","FEBO-S":"Fenouil bronze","FEFI-S":"Fenouil bronze","FLAGAS":"Autres fleurs comestibles","FRILLY-M":"Mesclun Spicy","FRILLY-S":"Moutarde Mix","HYAN-S":"Hysope anisée (Atsina)","HYAN-XS":"Hysope anisée (Atsina)","HYAN-XS16":"Hysope anisée (Atsina)","JG1TEZ5A":"Amaranthe pourpre","LIV-COL":"Livèche","LIVE-S":"Livèche","M23KNZ52":"Autre / échantillon","MECI-S":"Mélisse citron","MECI-XS16":"Mélisse citron","MECIXS":"Mélisse citron","MGFR-S":"Tagète française","MGFR-XS":"Tagète française","MGFR-XS16":"Tagète française","MIFL":"Mix de fleurs","MINTX":"Menthe","MIZU-C":"Mizuna vert","MUVE-XS":"Moutarde Wasabina","MUVE-XS16":"Moutarde Wasabina","MUWA-S":"Moutarde Wasabina","MUWAXS":"Moutarde Wasabina","NAAM-S":"Capucine (Zori)","NAIN-XS":"Capucine (Zori)","NAIN-XS16":"Capucine (Zori)","OCCM":"Autres fleurs comestibles","OIBO-COLIS":"Fleurs de tagète","OIBO-F":"Fleurs de tagète","OSBL-S":"Oseille de Belleville","OSRL-XS16":"Oseille veinée","OSRLXS":"Oseille veinée","OSVR-S":"Oseille veinée","OXAP-COLIS":"Oxalis pourpre","OXAP-S":"Oxalis pourpre","OXAV-S":"Oxalis verte","PEFA":"Persinette","PEFA-XS":"Persinette","PEFI-S":"Persinette","PEJA-S":"Persil japonais (Mitsuba)","PISS-S":"Petit pois Affila","PISS-XS16":"Petit pois Affila","PISSXS":"Petit pois Affila","RADA-XS":"Radis Daikon","RADA-XS16":"Radis Daikon","RARI-S":"Radis pourpre (Sakura)","RARI-XS":"Radis pourpre (Sakura)","RASA-XS":"Radis Daikon Chilli","S2F-OXA":"Oxalis pourpre","SALPEA-110GR":"Petit pois Affila","SGJD-S":"Sauge","SHISOLMIXXS":"Mix Shiso","SHIZO-MIX2":"Mix Shiso","SHRE-S":"Shiso rouge","SHRE-XS16":"Shiso rouge","SHREXS":"Shiso rouge","SHVE-S":"Shiso vert","SHVE-XS16":"Shiso vert","SHVEXS":"Shiso vert","SUPER-1":"Autre / échantillon","TAG-VR":"Tagète française","TAGMOY":"Tagète française","UH6J8QR8":"Mix variétés","VCBL":"Fleurs de pensées","VCJAUNE":"Fleurs de pensées","VCSO":"Fleurs de pensées","VCSO-COLIS":"Fleurs de pensées","VOBS":"Autres fleurs comestibles","W7EF5FYY":"Autres fleurs comestibles","XXFFZLIQ":"Mix variétés","ZAKUMIXS2F":"Zakura Mix","ZAKURA-MIX1":"Zakura Mix","ZAKURALMIXXS":"Zakura Mix","ZH9MKE9B":"Tagète française","ZYHNBW2K":"Mix variétés"};
+const EXCLUDE_VARIETIES = new Set(['Autre / échantillon','Mix variétés','Mix de fleurs','Mix Shiso','Autres fleurs comestibles']);
+
+const EPOCH_MS = Date.UTC(2020,0,1);
+function serialOf(y,m,d){ return Math.floor((Date.UTC(y,m-1,d) - EPOCH_MS)/86400000); }
+function serialToDate(s){ return new Date(EPOCH_MS + s*86400000); }
+function fmtDate(s){
+  if (s==null) return '—';
+  const d = serialToDate(s);
+  const dd = String(d.getUTCDate()).padStart(2,'0');
+  const mm = String(d.getUTCMonth()+1).padStart(2,'0');
+  const yy = d.getUTCFullYear();
+  return `${dd}/${mm}/${yy}`;
+}
+function parseDMY(str){
+  const parts = str.split('/');
+  if (parts.length!==3) return null;
+  const d = parseInt(parts[0],10), m = parseInt(parts[1],10), y = parseInt(parts[2],10);
+  if (!d||!m||!y) return null;
+  return serialOf(y,m,d);
+}
+function parseNum(str){
+  if (str==null || str==='') return 0;
+  const v = parseFloat(String(str).replace(',','.'));
+  return isNaN(v) ? 0 : v;
+}
+function fmtEUR(v){
+  return (Math.round(v)).toLocaleString('fr-FR') + ' €';
+}
+
+const CAT_CODE = {
+  'MICROPOUSSES':'P','MICROXS':'X','FLEURS':'F','JP':'J','METRO':'M',
+  'MARSEILLE':'S','MARSEILLEXS':'W','NATOORA':'N'
+};
+
+const DEFAULT_SETTINGS = {
+  stoppedGapDays:7,
+  basketDropRatio:0.6, revenueDropRatio:0.7, minBaselineCA:50,
+  buyslessWindowDays:7, varietyWindowDays:28,
+  crosssellStoppedDays:5,
+  growthRatioThreshold:2, growthMinRecentCA:30,
+  growthCurrentDays:7, growthPriorDays:14
+};
+
+let STATE = { rows:[], clients:[], groups:{}, paused:{}, settings:{...DEFAULT_SETTINGS}, needsReview:[], lastImportAt:null };
+const TAB_DEFAULT_SORT = { overview:'ca', stopped:'days', buysless:'days', variety:'days' };
+let sortKey = TAB_DEFAULT_SORT.overview, groupFilter='', searchTerm='', showPaused=false, activeTab='overview';
+let classifSearchTerm = '';
+let expandedRow = null;
+
+// ==================== CONFIGURATION GOOGLE — À COMPLÉTER ====================
+// Sécurité : chaque personne se connecte avec SON PROPRE compte Google (bouton
+// "Se connecter avec Google"). L'accès réel est contrôlé par le partage des deux
+// Google Sheets ci-dessous (onglet Partager de chaque fichier) — pas par ce code.
+// Le CLIENT_ID n'est pas un secret (il est normal qu'il soit visible ici), mais il
+// doit être déclaré dans Google Cloud Console avec cette page en "Authorized JavaScript origin" :
+//   https://weshgrow-droid.github.io
+const GOOGLE_OAUTH_CONFIG = {
+  clientId: '930336176315-nstjh090aro6a4h14iomo1usodva888s.apps.googleusercontent.com',
+  scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email'
+};
+
+// Sheet contenant les ventes (source ERP, mis à jour quotidiennement, lecture seule pour l'app).
+// Accès réservé aux personnes ajoutées dans le partage de ce fichier.
+const GOOGLE_SHEETS_CONFIG = {
+  spreadsheetId: '1Y_CexmqN65CNlBoiBoKHur_dL-L89tAXH5kgoVEsd50',
+  orderImportRange: "'Order import'!A2:K",
+  productAggregateRange: "'Product agregate'!A2:J"
+};
+
+// Sheet dédié à l'appli (classification, paramètres, pauses) — créé et partagé aux
+// 6 collaborateurs (lecture + écriture). Ne contient AUCUNE donnée de vente.
+const APP_STATE_CONFIG = {
+  spreadsheetId: '1vuDl5PRc7LPW5qg-SDbs86I-jNt-26w2VEHyUF-sQoU'
+  // Le nom de l'onglet (A2:B6) est détecté automatiquement, quelle que soit sa langue.
+};
+
+// Liste indicative des personnes autorisées (affichage/UX seulement — la vraie
+// sécurité vient du partage des deux Sheets ci-dessus, pas de cette liste).
+const AUTHORIZED_USERS = [
+  'camille.coquet@gmail.com',
+  'camille.weshgrow@gmail.com',
+  'charles.weshgrow@gmail.com',
+  'glenn.cheynier@gmail.com',
+  'loweshgrow@gmail.com',
+  'weshgrow@gmail.com'
+];
+// ==============================================================================
+
+let CURRENT_USER = null;
+let ACCESS_TOKEN = null; // jeton OAuth de la session en cours (non persisté, expire après ~1h)
+
+function normalizeUser(s){ return String(s||'').trim().toLowerCase(); }
+
+async function sheetsGetValues(spreadsheetId, range){
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}?t=${Date.now()}`;
+  const resp = await fetch(url, { headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}` } });
+  if (!resp.ok){
+    let msg = String(resp.status);
+    try { const err = await resp.json(); if (err.error && err.error.message) msg += ' — ' + err.error.message; } catch(e){}
+    const error = new Error(msg); error.status = resp.status; throw error;
+  }
+  const data = await resp.json();
+  return data.values || [];
+}
+
+async function sheetsUpdateValues(spreadsheetId, range, values2D){
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}?valueInputOption=RAW`;
+  const resp = await fetch(url, {
+    method: 'PUT',
+    headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ values: values2D })
+  });
+  if (!resp.ok){
+    let msg = String(resp.status);
+    try { const err = await resp.json(); if (err.error && err.error.message) msg += ' — ' + err.error.message; } catch(e){}
+    const error = new Error(msg); error.status = resp.status; throw error;
+  }
+  return await resp.json();
+}
+
+// Le nom réel du premier onglet dépend de la langue du compte Google qui a créé le
+// fichier (ex: "Sheet1" en anglais, "Feuille 1" en français) — on le découvre plutôt
+// que de le supposer, pour ne pas dépendre d'une hypothèse fragile.
+const sheetTitleCache = {};
+async function getFirstSheetTitle(spreadsheetId){
+  if (sheetTitleCache[spreadsheetId]) return sheetTitleCache[spreadsheetId];
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties.title`;
+  const resp = await fetch(url, { headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}` } });
+  if (!resp.ok){
+    let msg = String(resp.status);
+    try { const err = await resp.json(); if (err.error && err.error.message) msg += ' — ' + err.error.message; } catch(e){}
+    const error = new Error(msg); error.status = resp.status; throw error;
+  }
+  const data = await resp.json();
+  const title = data.sheets && data.sheets[0] && data.sheets[0].properties.title;
+  if (!title) throw new Error('Impossible de déterminer le nom du premier onglet.');
+  sheetTitleCache[spreadsheetId] = title;
+  return title;
+}
+
+// ---------- État de l'appli (classification, paramètres, pauses) — Google Sheet dédié ----------
+async function loadStorage(){
+  try{
+    const title = await getFirstSheetTitle(APP_STATE_CONFIG.spreadsheetId);
+    const rows = await sheetsGetValues(APP_STATE_CONFIG.spreadsheetId, `'${title}'!A2:B6`);
+    const map = {};
+    for (const r of rows) map[r[0]] = r[1];
+    STATE.groups = map.classification ? JSON.parse(map.classification) : {};
+    STATE.settings = {...DEFAULT_SETTINGS, ...(map.settings ? JSON.parse(map.settings) : {})};
+    STATE.paused = map.paused ? JSON.parse(map.paused) : {};
+    STATE.needsReview = map.needsReview ? JSON.parse(map.needsReview) : [];
+    STATE.lastImportAt = map.lastImportAt || null;
+    return true;
+  }catch(e){
+    console.error(e);
+    alert("Impossible de charger les réglages de l'appli (" + e.message + "). Vérifie que ton compte Google a bien accès au Sheet « Wesh Grow - App State ».");
+    return false;
+  }
+}
+
+async function persistAll(){
+  const values2D = [
+    ['classification', JSON.stringify(STATE.groups)],
+    ['settings', JSON.stringify(STATE.settings)],
+    ['paused', JSON.stringify(STATE.paused)],
+    ['needsReview', JSON.stringify(STATE.needsReview)],
+    ['lastImportAt', STATE.lastImportAt || '']
+  ];
+  try{
+    const title = await getFirstSheetTitle(APP_STATE_CONFIG.spreadsheetId);
+    await sheetsUpdateValues(APP_STATE_CONFIG.spreadsheetId, `'${title}'!A2:B6`, values2D);
+  }catch(e){
+    console.error(e);
+    alert("Erreur de sauvegarde des réglages (" + e.message + "). Vérifie ta connexion et tes droits d'accès au Sheet « Wesh Grow - App State ».");
+  }
+}
+
+
+// ---------- Core stats ----------
+const WEEKLY_STREAK_MIN_WEEKS = 3; // nb de semaines consécutives min. pour être considéré "régulier hebdo"
+
+function longestWeekStreak(dates){
+  const weeks = [...new Set(dates.map(d=>Math.floor(d/7)))].sort((a,b)=>a-b);
+  let best = weeks.length ? 1 : 0, cur = 1;
+  for (let i=1;i<weeks.length;i++){
+    if (weeks[i] === weeks[i-1]+1) cur++;
+    else cur = 1;
+    if (cur > best) best = cur;
+  }
+  return best;
+}
+
+function computeClientStats(){
+  const byClient = new Map();
+  for (const r of STATE.rows){
+    const [d,ci,ref,cat,montant,qty] = r;
+    if (!byClient.has(ci)) byClient.set(ci, []);
+    byClient.get(ci).push({d,ref,cat,montant,qty});
+  }
+  let refDateSerial = 0;
+  for (const r of STATE.rows) if (r[0] > refDateSerial) refDateSerial = r[0];
+
+  const settings = STATE.settings;
+  const results = [];
+  for (const [ci, orders] of byClient.entries()){
+    const name = STATE.clients[ci];
+    if (!name) continue;
+    orders.sort((a,b)=>a.d-b.d);
+    const dates = [...new Set(orders.map(o=>o.d))].sort((a,b)=>a-b);
+    const firstDate = dates[0], lastDate = dates[dates.length-1];
+    const nDates = dates.length;
+    const totalCA = orders.reduce((s,o)=>s+o.montant,0);
+    const daysSince = refDateSerial - lastDate;
+
+    // Arrêt total : le client commandait régulièrement (au moins 1×/semaine pendant au moins
+    // 3 semaines consécutives, à un moment de son historique), et n'a plus rien commandé
+    // depuis plus de 7 jours.
+    const wasWeeklyRegular = longestWeekStreak(dates) >= WEEKLY_STREAK_MIN_WEEKS;
+    const inactive = wasWeeklyRegular && daysSince > settings.stoppedGapDays;
+
+    // Moins de variété : nombre de références distinctes sur la fenêtre récente, comparé à la
+    // moyenne habituelle du client sur des fenêtres de même taille.
+    const varWindow = settings.varietyWindowDays;
+    const varRecentStart = refDateSerial - (varWindow - 1);
+    const recentRefs = new Set(orders.filter(o=>o.d>=varRecentStart && o.d<=refDateSerial).map(o=>o.ref));
+    const recentDistinct = recentRefs.size;
+    const buckets = [];
+    let bStart = firstDate;
+    while (bStart < varRecentStart){
+      const bEnd = Math.min(bStart+varWindow-1, varRecentStart-1);
+      const refsInBucket = new Set(orders.filter(o=>o.d>=bStart && o.d<=bEnd).map(o=>o.ref));
+      if (refsInBucket.size>0) buckets.push(refsInBucket.size);
+      bStart += varWindow;
+    }
+    const histAvgDistinct = buckets.length ? buckets.reduce((a,b)=>a+b,0)/buckets.length : null;
+    const basketReduced = !inactive && recentDistinct>0 && histAvgDistinct!==null &&
+      histAvgDistinct>=2 && recentDistinct < settings.basketDropRatio*histAvgDistinct;
+
+    // Achètent moins : CA sur la fenêtre récente, comparé à la moyenne habituelle du client
+    // sur des fenêtres de même taille (ramenée à une durée comparable).
+    const blWindow = settings.buyslessWindowDays;
+    const recentStartBL = refDateSerial - (blWindow - 1);
+    const recentCA = orders.filter(o=>o.d>=recentStartBL && o.d<=refDateSerial).reduce((s,o)=>s+o.montant,0);
+    const priorEnd = recentStartBL-1, priorStart = firstDate;
+    const priorCA = orders.filter(o=>o.d>=priorStart && o.d<=priorEnd).reduce((s,o)=>s+o.montant,0);
+    const priorDays = Math.max(1, priorEnd-priorStart+1);
+    const priorCA28Equiv = priorEnd>=priorStart ? priorCA*(blWindow/priorDays) : 0;
+    const buysLess = !inactive && recentCA>0 && priorCA28Equiv>=settings.minBaselineCA &&
+      recentCA < settings.revenueDropRatio*priorCA28Equiv;
+    const revenueDrop = buysLess; // conservé pour compatibilité de nommage dans l'affichage
+
+
+    results.push({
+      ci, name, group: STATE.groups[name] || 'Restaurant',
+      lastDate, daysSince, inactive,
+      totalCA,
+      recentDistinct, histAvgDistinct, basketReduced,
+      recentCA, priorCA28Equiv, revenueDrop, buysLess, nDates,
+      paused: !!STATE.paused[name]
+    });
+  }
+  return {results, refDateSerial};
+}
+
+// ---------- Rafraîchissement des ventes depuis Google Sheets (source ERP) ----------
+function parseEuro(str){
+  if (str == null || str === '') return 0;
+  let s = String(str).trim().replace(/[€\s]/g, '');
+  s = s.replace(/\./g, '').replace(',', '.'); // "1.234,56" (FR) -> "1234.56"
+  const v = parseFloat(s);
+  return isNaN(v) ? 0 : v;
+}
+function parseQty(str){
+  if (str == null || str === '') return 0;
+  const v = parseFloat(String(str).replace(',', '.').replace(/[^\d.-]/g, ''));
+  return isNaN(v) ? 0 : v;
+}
+
+const SECTEUR_MAJ_TO_CAT = {
+  'MICROPOUSSES':'P', 'MICROXS':'X', 'FLEURS':'F', 'JP':'J', 'METRO':'M', 'MARSEILLE':'S'
+};
+function secteurToCat(secteurMaj){
+  return SECTEUR_MAJ_TO_CAT[(secteurMaj||'').toUpperCase()] || 'O';
+}
+
+async function buildProductAggregateMap(){
+  const rows = await sheetsGetValues(GOOGLE_SHEETS_CONFIG.spreadsheetId, GOOGLE_SHEETS_CONFIG.productAggregateRange);
+  const map = new Map(); // Code Produit -> {codeMaj, secteurMaj, ignoreImport}
+  for (const row of rows){
+    const secteurProduit = row[0], codeProduit = row[1], nomProduit = row[2],
+          codeMaj = row[3], secteurMaj = row[4], ignoreImport = row[7];
+    if (!codeProduit) continue;
+    map.set(String(codeProduit).trim(), {
+      codeMaj: String(codeMaj || codeProduit).trim(),
+      secteurMaj: String(secteurMaj || secteurProduit || '').trim().toUpperCase(),
+      ignoreImport: String(ignoreImport || '').trim().toUpperCase() === 'OUI'
+    });
+  }
+  return map;
+}
+
+// Les ventes antérieures à cette date ne sont pas prises en compte (données jugées peu fiables avant).
+const MIN_SALES_DATE_SERIAL = serialOf(2025, 12, 31);
+
+// Certains grossistes (Primeurs Passion, Natoora, Salade de Fruits, Maison Berjac) achètent
+// en "colis de 8 barquettes S", plutôt qu'en "colis de 16 XS" comme les autres grossistes.
+// L'ERP étiquette parfois ces produits en secteur "MICROPOUSSES" au lieu de "MICROXS" — on
+// détecte ce format par le nom du produit plutôt que par une liste de codes, pour rester valable
+// même si l'ERP crée de nouveaux codes pour ce même format à l'avenir.
+function isColis8BarquettesFormat(nomProduit){
+  return /colis.*\bs\b.*x\s*8\s*barquette/i.test(nomProduit || '');
+}
+
+async function refreshSalesData(){
+  const btn = document.getElementById('syncSheetsBtn');
+  const logEl = document.getElementById('importLog');
+  logEl.style.display = 'block';
+  logEl.innerHTML = '';
+  const log = (msg) => { const d=document.createElement('div'); d.textContent=msg; logEl.appendChild(d); };
+  if (btn) btn.disabled = true;
+  try{
+    log('Lecture de la table de correspondance produits…');
+    const aggMap = await buildProductAggregateMap();
+    log(`${aggMap.size} correspondances produits chargées.`);
+
+    log('Lecture des lignes de commande depuis Google Sheets…');
+    const orderRows = await sheetsGetValues(GOOGLE_SHEETS_CONFIG.spreadsheetId, GOOGLE_SHEETS_CONFIG.orderImportRange);
+    log(`${orderRows.length} lignes trouvées.`);
+
+    const clients = [];
+    const clientIndex = new Map();
+    const rows = [];
+    let ignored = 0, skipped = 0, tooOld = 0, excludedMarseille = 0;
+    const newClients = [];
+
+    for (const row of orderRows){
+      // 0:ID ligne | 1:Dénomination | 2:Date de commande | 3:Secteur produit | 4:Code Produit
+      // 5:Nom produit | 6:Prix HT | 7:Quantité | 8:Prix total sur la ligne produit | 9:CP | 10:Ville
+      const clientName = String(row[1] || '').trim();
+      const dateStr = String(row[2] || '').trim();
+      const codeProduit = String(row[4] || '').trim();
+      if (!clientName || !dateStr){ skipped++; continue; }
+      const d = parseDMY(dateStr);
+      if (d == null){ skipped++; continue; }
+      if (d < MIN_SALES_DATE_SERIAL){ tooOld++; continue; }
+
+      const agg = aggMap.get(codeProduit);
+      if (agg && agg.ignoreImport){ ignored++; continue; }
+      const ref = agg ? agg.codeMaj : (codeProduit || 'INCONNU');
+      const nomProduit = String(row[5] || '');
+      const secteurMaj = isColis8BarquettesFormat(nomProduit) ? 'MICROXS'
+        : (agg ? agg.secteurMaj : String(row[3] || '').trim().toUpperCase());
+      // Toutes les ventes de la ferme de Marseille sont exclues, quel que soit le format.
+      if (secteurMaj.startsWith('MARSEILLE') || String(row[3]||'').trim().toUpperCase().startsWith('MARSEILLE')){
+        excludedMarseille++; continue;
+      }
+      const cat = secteurToCat(secteurMaj);
+      const montant = parseEuro(row[8]);
+      const qty = parseQty(row[7]);
+
+      let ci = clientIndex.get(clientName);
+      if (ci === undefined){
+        ci = clients.length;
+        clients.push(clientName);
+        clientIndex.set(clientName, ci);
+        if (!STATE.groups[clientName]){
+          STATE.groups[clientName] = 'Restaurant';
+          if (!STATE.needsReview.includes(clientName)) { STATE.needsReview.push(clientName); newClients.push(clientName); }
+        }
+      }
+      rows.push([d, ci, ref, cat, Math.round(montant*100)/100, Math.round(qty*100)/100]);
+    }
+
+    STATE.clients = clients;
+    STATE.rows = rows;
+
+    log(`Terminé : ${rows.length} lignes chargées, ${excludedMarseille} lignes de la ferme de Marseille exclues, ${ignored} lignes exclues (codes obsolètes), ${tooOld} lignes antérieures au 31/12/2025 ignorées, ${skipped} lignes incomplètes ignorées.`);
+    if (newClients.length) log(`${newClients.length} nouveau(x) client(s) détecté(s) — à classer ci-contre.`);
+    STATE.lastImportAt = new Date().toISOString();
+    await persistAll();
+    render();
+  }catch(e){
+    log('Erreur de lecture Google Sheets : ' + e.message);
+    console.error(e);
+  }finally{
+    if (btn) btn.disabled = false;
+  }
+}
+
+// ---------- Rendering ----------
+function fmtDateTime(iso){
+  if (!iso) return 'jamais';
+  const d = new Date(iso);
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const yy = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2,'0');
+  const mi = String(d.getMinutes()).padStart(2,'0');
+  return `${dd}/${mm}/${yy} à ${hh}:${mi}`;
+}
+
+function renderHeader(refDateSerial){
+  let minDate = null;
+  for (const r of STATE.rows) if (minDate===null || r[0] < minDate) minDate = r[0];
+  const periode = minDate!=null ? `${fmtDate(minDate)} → ${fmtDate(refDateSerial)}` : '—';
+  document.getElementById('headerMeta').innerHTML =
+    `Référence : <b>${fmtDate(refDateSerial)}</b><br>` +
+    `Période couverte : <b>${periode}</b><br>` +
+    `Dernier import : <b>${fmtDateTime(STATE.lastImportAt)}</b><br>` +
+    `Clients suivis : <b>${STATE.clients.length}</b>`;
+}
+
+function renderKPIs(results){
+  const active = results.filter(r=>!r.paused);
+  const stopped = active.filter(r=>r.inactive);
+  const buysLess = active.filter(r=>!r.inactive && r.buysLess);
+  const lessVariety = active.filter(r=>!r.inactive && r.basketReduced);
+  const el = document.getElementById('kpis');
+  el.innerHTML = `
+    <div class="kpi"><div class="label">Clients suivis</div><div class="value">${STATE.clients.length}</div></div>
+    <div class="kpi danger"><div class="label">Arrêt total</div><div class="value">${stopped.length}</div></div>
+    <div class="kpi" style="border-color:var(--warning);"><div class="label">Achètent moins</div><div class="value" style="color:var(--warning);">${buysLess.length}</div></div>
+    <div class="kpi" style="border-color:#8a5a1a;"><div class="label">Moins de variété</div><div class="value" style="color:#8a5a1a;">${lessVariety.length}</div></div>
+  `;
+}
+
+const TABS = [
+  {key:'overview', label:'Synthèse', desc:'Toutes les alertes actives (arrêts, baisses de fréquence/volume, baisses de variété), triées pour faire ressortir les changements les plus récents.'},
+  {key:'stopped', label:'Arrêt total', desc:'Ne commandent plus du tout par rapport à leur propre rythme habituel.'},
+  {key:'buysless', label:'Achètent moins', desc:'Toujours actifs, mais commandent moins souvent et/ou pour des montants plus faibles qu\u2019avant.'},
+  {key:'variety', label:'Moins de variété', desc:'Toujours actifs, mais le nombre de références différentes achetées a baissé.'},
+  {key:'crosssell', label:'Cross-sell grossistes', desc:'Par grossiste : variétés (format XS et fleurs) actives, arrêtées ou jamais achetées.'},
+  {key:'growth', label:'Nouvelles tendances', desc:'Grossistes qui démarrent une variété cette semaine, ou qui en achètent nettement plus que les 2 semaines précédentes.'}
+];
+
+function renderTabs(results){
+  const active = results.filter(r=>!r.paused);
+  const crossData = computeCrossSell();
+  const growthData = computeGrowthSignals();
+  const recentStopsCount = active.filter(r => r.inactive).length;
+  const recentLessCount = active.filter(r => !r.inactive && r.buysLess).length;
+  const recentVarietyCount = active.filter(r => !r.inactive && r.basketReduced).length;
+  const counts = {
+    overview: recentStopsCount + recentLessCount + recentVarietyCount,
+    stopped: active.filter(r=>r.inactive).length,
+    buysless: active.filter(r=>!r.inactive && r.buysLess).length,
+    variety: active.filter(r=>!r.inactive && r.basketReduced).length,
+    crosssell: crossData.rows.filter(r=>r.problemCount>0).length,
+    growth: growthData.rows.length
+  };
+  const controlsEl = document.querySelector('.controls');
+  if (controlsEl) controlsEl.style.display = (activeTab==='overview' || activeTab==='crosssell' || activeTab==='growth') ? 'none' : 'flex';
+  const bar = document.getElementById('tabsBar');
+  bar.innerHTML = TABS.map(t=>`
+    <button class="tab-btn ${activeTab===t.key?'active':''}" data-tab="${t.key}">${t.label}<span class="count">${counts[t.key]}</span></button>
+  `).join('');
+  bar.querySelectorAll('[data-tab]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      activeTab = btn.getAttribute('data-tab');
+      sortKey = TAB_DEFAULT_SORT[activeTab] || 'days';
+      const sel = document.getElementById('sortSelect');
+      if (sel) sel.value = sortKey;
+      render();
+    });
+  });
+  const descEl = document.getElementById('tabDesc');
+  if (descEl) descEl.textContent = TABS.find(t=>t.key===activeTab).desc;
+}
+
+async function togglePause(name){
+  if (STATE.paused[name]) delete STATE.paused[name];
+  else STATE.paused[name] = true;
+  await persistAll();
+  render();
+}
+function wirePauseButtons(container){
+  container.querySelectorAll('[data-pause]').forEach(btn=>{
+    btn.addEventListener('click', (e)=> togglePause(e.target.getAttribute('data-pause')));
+  });
+}
+
+function renderPausedPanel(){
+  const panel = document.getElementById('pausedPanel');
+  const list = document.getElementById('pausedList');
+  const countEl = document.getElementById('pausedCount');
+  const names = Object.keys(STATE.paused).filter(n=>STATE.paused[n]).sort((a,b)=>a.localeCompare(b));
+  if (countEl) countEl.textContent = names.length;
+  if (!names.length){ panel.style.display='none'; return; }
+  panel.style.display='block';
+  list.innerHTML = names.map(name=>`
+    <div class="item">
+      <span>${name}</span>
+      <button data-pause="${name.replace(/"/g,'&quot;')}">Réactiver</button>
+    </div>`).join('');
+  wirePauseButtons(list);
+}
+
+function renderReview(){
+  const panel = document.getElementById('reviewPanel');
+  const list = document.getElementById('reviewList');
+  if (!STATE.needsReview.length){ panel.style.display='none'; return; }
+  panel.style.display='block';
+  list.innerHTML = STATE.needsReview.map(name => `
+    <div class="item">
+      <span>${name}</span>
+      <select class="group-select" data-review-client="${name.replace(/"/g,'&quot;')}">
+        ${['Restaurant','Traiteur','Grossiste','Metro'].map(g=>`<option value="${g}" ${STATE.groups[name]===g?'selected':''}>${g}</option>`).join('')}
+      </select>
+      <button data-validate-client="${name.replace(/"/g,'&quot;')}" style="font-size:11px;padding:4px 8px;">Valider</button>
+    </div>`).join('');
+  list.querySelectorAll('[data-review-client]').forEach(sel=>{
+    sel.addEventListener('change', async (e)=>{
+      const name = e.target.getAttribute('data-review-client');
+      STATE.groups[name] = e.target.value;
+      STATE.needsReview = STATE.needsReview.filter(n => n !== name);
+      await persistAll();
+      render();
+    });
+  });
+  list.querySelectorAll('[data-validate-client]').forEach(btn=>{
+    btn.addEventListener('click', async (e)=>{
+      const name = e.target.getAttribute('data-validate-client');
+      STATE.needsReview = STATE.needsReview.filter(n => n !== name);
+      await persistAll();
+      render();
+    });
+  });
+}
+
+function renderClassifTable(){
+  document.getElementById('clientCount').textContent = STATE.clients.length;
+  const tbody = document.querySelector('#classifTable tbody');
+  let sorted = [...STATE.clients].sort((a,b)=>a.localeCompare(b));
+  if (classifSearchTerm) sorted = sorted.filter(name => name.toLowerCase().includes(classifSearchTerm.toLowerCase()));
+  tbody.innerHTML = sorted.map(name => `
+    <tr>
+      <td>${name}</td>
+      <td><select class="group-select" data-classif-client="${name.replace(/"/g,'&quot;')}">
+        ${['Restaurant','Traiteur','Grossiste','Metro'].map(g=>`<option value="${g}" ${STATE.groups[name]===g?'selected':''}>${g}</option>`).join('')}
+      </select></td>
+    </tr>`).join('');
+  tbody.querySelectorAll('[data-classif-client]').forEach(sel=>{
+    sel.addEventListener('change', async (e)=>{
+      const name = e.target.getAttribute('data-classif-client');
+      STATE.groups[name] = e.target.value;
+      await persistAll();
+      render();
+    });
+  });
+}
+
+
+function renderTable(results, refDateSerial){
+  let filtered = results.filter(r=>{
+    if (!showPaused && r.paused) return false;
+    if (groupFilter && r.group!==groupFilter) return false;
+    if (searchTerm && !r.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    if (activeTab==='stopped' && !r.inactive) return false;
+    if (activeTab==='buysless' && (r.inactive || !r.buysLess)) return false;
+    if (activeTab==='variety' && (r.inactive || !r.basketReduced)) return false;
+    return true;
+  });
+  const sorters = {
+    days: (a,b)=> a.daysSince-b.daysSince,
+    ca: (a,b)=> b.totalCA-a.totalCA,
+    name: (a,b)=> a.name.localeCompare(b.name)
+  };
+  filtered.sort(sorters[sortKey] || sorters.days);
+
+  const wrap = document.getElementById('tableWrap');
+  if (!filtered.length){
+    wrap.innerHTML = `<div class="empty-state"><h2>Aucun client ne correspond aux filtres</h2><p>Essaie d'élargir la recherche ou d'afficher les clients en pause.</p></div>`;
+    return;
+  }
+
+  function rowHtml(r){
+    const badges = [];
+    if (r.inactive) badges.push(`<span class="badge inactive">ARRÊT ${r.daysSince}j</span>`);
+    if (r.revenueDrop && activeTab!=='variety'){
+      const pct = r.priorCA28Equiv>0 ? Math.round((1 - r.recentCA/r.priorCA28Equiv)*100) : null;
+      badges.push(`<span class="badge revenue">ACHÈTE MOINS${pct!=null?` (-${pct}%)`:''}</span>`);
+    }
+    if (r.basketReduced && activeTab!=='buysless'){
+      const pct = r.histAvgDistinct>0 ? Math.round((1 - r.recentDistinct/r.histAvgDistinct)*100) : null;
+      badges.push(`<span class="badge basket">MOINS DE VARIÉTÉ${pct!=null?` (-${pct}%)`:''}</span>`);
+    }
+    if (!badges.length) badges.push(`<span class="badge ok">OK</span>`);
+    const rowKey = r.name.replace(/"/g,'&quot;');
+    return `
+    <tr class="${r.paused?'paused':''}" data-row="${rowKey}">
+      <td><b>${r.name}</b>${r.paused?' <span class="small">(en pause)</span>':''}<div class="small">${r.group}</div></td>
+      <td>${fmtDate(r.lastDate)}<div class="small">${r.daysSince} j sans commande</div></td>
+      <td>${badges.join(' ')}</td>
+      <td class="mono">${fmtEUR(r.totalCA)}</td>
+      <td class="row-actions">
+        <button data-detail="${rowKey}">Détail</button>
+        <button data-pause="${rowKey}">${r.paused?'Réactiver':'Pause'}</button>
+      </td>
+    </tr>
+    ${expandedRow===r.name ? renderDetailRow(r, refDateSerial) : ''}
+    `;
+  }
+
+  const theadHtml = `<thead><tr>
+    <th data-sort="name">Client</th>
+    <th data-sort="days">Dernière commande</th>
+    <th>Statut</th>
+    <th data-sort="ca">CA total</th>
+    <th>Actions</th>
+  </tr></thead>`;
+
+  if (activeTab === 'stopped'){
+    // Regroupement par catégorie, dans cet ordre, pour l'onglet Arrêt total.
+    const GROUP_ORDER = ['Grossiste','Restaurant','Traiteur','Metro'];
+    const groupsHtml = GROUP_ORDER.map(g => {
+      const items = filtered.filter(r => r.group === g);
+      if (!items.length) return '';
+      return `<h3 style="margin:18px 0 8px;">${g} (${items.length})</h3>
+        <table>${theadHtml}<tbody>${items.map(rowHtml).join('')}</tbody></table>`;
+    }).join('');
+    wrap.innerHTML = groupsHtml;
+  } else {
+    wrap.innerHTML = `<table>${theadHtml}<tbody>${filtered.map(rowHtml).join('')}</tbody></table>`;
+  }
+
+  wrap.querySelectorAll('[data-detail]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      const name = e.target.getAttribute('data-detail');
+      expandedRow = expandedRow===name ? null : name;
+      renderTable(results, refDateSerial);
+    });
+  });
+  wirePauseButtons(wrap);
+  wrap.querySelectorAll('[data-sort]').forEach(th=>{
+    th.addEventListener('click', ()=>{
+      sortKey = th.getAttribute('data-sort');
+      document.getElementById('sortSelect').value = sortKey;
+      render();
+    });
+  });
+}
+
+function renderDetailRow(r, refDateSerial){
+  const blWindow = STATE.settings.buyslessWindowDays;
+  const varWindow = STATE.settings.varietyWindowDays;
+  const basketTxt = r.histAvgDistinct!=null
+    ? (()=>{ const pct = r.histAvgDistinct>0 ? Math.round((1 - r.recentDistinct/r.histAvgDistinct)*100) : null;
+        const pctTxt = pct>0 ? ` (-${pct}%)` : (pct<0 ? ` (+${-pct}%)` : '');
+        return `${r.recentDistinct} référence(s) sur les ${varWindow} derniers jours, contre ${r.histAvgDistinct.toFixed(1)} en moyenne historique${pctTxt}`; })()
+    : `${r.recentDistinct} référence(s) sur les ${varWindow} derniers jours (historique insuffisant pour comparer)`;
+  const revenueTxt = r.priorCA28Equiv>0
+    ? (()=>{ const pct = Math.round((1 - r.recentCA/r.priorCA28Equiv)*100);
+        const pctTxt = pct>0 ? ` (-${pct}%)` : (pct<0 ? ` (+${-pct}%)` : '');
+        return `${fmtEUR(r.recentCA)} sur les ${blWindow} derniers jours, contre ${fmtEUR(r.priorCA28Equiv)} en rythme habituel${pctTxt}`; })()
+    : `${fmtEUR(r.recentCA)} sur les ${blWindow} derniers jours (pas de repère historique)`;
+  return `
+    <tr><td colspan="6" style="padding:0;border-top:none;">
+      <div class="row-detail">
+        <div class="cols">
+          <div class="col"><b>Rythme de commande</b>${r.nDates} commande(s) distincte(s)<br>${r.daysSince} jour(s) sans commande</div>
+          <div class="col"><b>Volume récent (CA)</b>${revenueTxt}</div>
+          <div class="col"><b>Variété du panier</b>${basketTxt}</div>
+        </div>
+      </div>
+    </td></tr>`;
+}
+
+// ---------- Cross-sell grossistes (variétés format XS) ----------
+function computeCrossSell(){
+  let refDateSerial = 0;
+  for (const r of STATE.rows) if (r[0] > refDateSerial) refDateSerial = r[0];
+  const currentYear = serialToDate(refDateSerial).getUTCFullYear();
+  const stoppedDays = STATE.settings.crosssellStoppedDays;
+
+  const varietyCA = new Map();          // variety -> CA total (format XS, grossistes, tout l'historique)
+  const clientCA = new Map();           // ci -> CA total (format XS, toutes variétés)
+  const clientYtdCA = new Map();        // ci -> CA total (tous formats confondus, année en cours)
+  const clientVarietyLastDate = new Map(); // ci -> Map(variety -> dernier jour commandé)
+  const flowerVarieties = new Set();    // variétés issues du secteur FLEURS (dont l'oxalis)
+
+  for (const r of STATE.rows){
+    const [d, ci, ref, cat, montant, qty] = r;
+    const name = STATE.clients[ci];
+    if (!name) continue;
+    const group = STATE.groups[name] || 'Restaurant';
+    if (group !== 'Grossiste') continue;
+    if (STATE.paused[name]) continue; // les clients en pause n'apparaissent plus dans cet onglet
+
+    if (serialToDate(d).getUTCFullYear() === currentYear){
+      clientYtdCA.set(ci, (clientYtdCA.get(ci)||0) + montant);
+    }
+
+    // Le "dernier achat" d'une variété compte quel que soit le conditionnement (colis ou à
+    // l'unité) : seul le fait d'acheter la variété importe pour savoir si elle est toujours
+    // active, indépendamment du format dans lequel elle est vendue.
+    const varietyAnyFormat = REF_VARIETY[ref];
+    if (varietyAnyFormat && !EXCLUDE_VARIETIES.has(varietyAnyFormat)){
+      if (!clientVarietyLastDate.has(ci)) clientVarietyLastDate.set(ci, new Map());
+      const mlAny = clientVarietyLastDate.get(ci);
+      if (!mlAny.has(varietyAnyFormat) || d > mlAny.get(varietyAnyFormat)) mlAny.set(varietyAnyFormat, d);
+    }
+
+    if (cat !== 'X' && cat !== 'F') continue; // le CA et le classement restent basés sur le format XS + fleurs
+    const variety = REF_VARIETY[ref];
+    if (!variety || EXCLUDE_VARIETIES.has(variety)) continue;
+    if (cat === 'F') flowerVarieties.add(variety);
+
+    clientCA.set(ci, (clientCA.get(ci)||0) + montant);
+    varietyCA.set(variety, (varietyCA.get(variety)||0) + montant);
+  }
+
+  const allVarieties = [...varietyCA.entries()].sort((a,b)=>b[1]-a[1]).map(e=>e[0]);
+
+  const rows = [];
+  for (const ci of clientYtdCA.keys()){
+    const ca = clientCA.get(ci) || 0;
+    const ytdCA = clientYtdCA.get(ci) || 0;
+    const mlast = clientVarietyLastDate.get(ci) || new Map();
+    const active = [], stopped = [], never = [];
+    for (const v of allVarieties){
+      const lastDate = mlast.get(v);
+      if (lastDate === undefined){
+        never.push(v);
+        continue;
+      }
+      const stillActive = (refDateSerial - lastDate) < stoppedDays;
+      if (stillActive) active.push(v);
+      else stopped.push({variety:v, lastDate});
+    }
+    const problemCount = stopped.length + never.length;
+    rows.push({ci, name: STATE.clients[ci], ca, ytdCA, currentYear, active, stopped, never, problemCount});
+  }
+  rows.sort((a,b)=> b.ytdCA - a.ytdCA);
+  return {allVarieties, varietyCA, rows, refDateSerial, flowerVarieties};
+}
+
+function renderCrossSell(){
+  const {rows, flowerVarieties} = computeCrossSell();
+  const wrap = document.getElementById('tableWrap');
+  if (!rows.length){
+    wrap.innerHTML = `<div class="empty-state"><h2>Pas assez de données</h2><p>Importe des ventes en format XS ou fleurs chez des clients classés « Grossiste » pour voir cette analyse.</p></div>`;
+    return;
+  }
+  const currentYear = rows[0].currentYear;
+  const vLabel = v => flowerVarieties.has(v) ? `${v} 🌸` : v;
+  const rowsHtml = rows.map(r=>{
+    const activeSorted = [...r.active].sort((a,b)=>a.localeCompare(b));
+    const stoppedSorted = [...r.stopped].sort((a,b)=>b.lastDate-a.lastDate);
+    const neverSorted = [...r.never].sort((a,b)=>a.localeCompare(b));
+
+    const activeHtml = activeSorted.length
+      ? `<div class="cs-count">${activeSorted.length} variété(s)</div><div class="cs-list">${activeSorted.map(v=>`<span class="badge ok">${vLabel(v)}</span>`).join('')}</div>`
+      : `<span class="small">—</span>`;
+    const stoppedHtml = stoppedSorted.length
+      ? `<div class="cs-count">${stoppedSorted.length} variété(s)</div><div class="cs-list">${stoppedSorted.map(s=>`<span class="badge badge-low">${vLabel(s.variety)}<br><span style="opacity:.8;font-weight:400;">depuis le ${fmtDate(s.lastDate)}</span></span>`).join('')}</div>`
+      : `<span class="small">—</span>`;
+    const neverHtml = neverSorted.length
+      ? `<div class="cs-count">${neverSorted.length} variété(s)</div><div class="cs-list">${neverSorted.map(v=>`<span class="badge badge-never">${vLabel(v)}</span>`).join('')}</div>`
+      : `<span class="small">—</span>`;
+    const rowKey = r.name.replace(/"/g,'&quot;');
+    return `<tr>
+      <td class="cs-cell"><b>${r.name}</b><div class="small mono">CA ${r.currentYear} : ${fmtEUR(r.ytdCA)}</div></td>
+      <td class="cs-cell cs-active">${activeHtml}</td>
+      <td class="cs-cell cs-stopped">${stoppedHtml}</td>
+      <td class="cs-cell cs-never">${neverHtml}</td>
+      <td class="row-actions"><button data-pause="${rowKey}">Pause</button></td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML = `
+    <div style="margin-bottom:16px;">
+      <p class="hint">Triés par chiffre d\u2019affaires ${currentYear} (tous formats). 🌸 = variété du secteur Fleurs (dont l\u2019oxalis). Actifs : dernier achat il y a moins de ${STATE.settings.crosssellStoppedDays} jours. Arrêtés : déjà achetée, mais plus aucun achat depuis au moins ${STATE.settings.crosssellStoppedDays} jours (réglable dans Paramètres). Jamais achetés : aucune commande sur toute la période. Les clients en pause n\u2019apparaissent pas ici (voir le panneau « Clients en pause » dans la barre latérale).</p>
+    </div>
+    <table class="cs-table">
+      <colgroup>
+        <col style="width:16%"><col style="width:26%"><col style="width:26%"><col style="width:24%"><col style="width:8%">
+      </colgroup>
+      <thead><tr><th>Grossiste</th><th>Produits actifs</th><th>Produits arrêtés</th><th>Jamais achetés</th><th></th></tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+  `;
+  wirePauseButtons(wrap);
+}
+
+// ---------- Nouvelles tendances (démarrage ou forte hausse d'une variété) ----------
+function computeGrowthSignals(){
+  let refDateSerial = 0;
+  for (const r of STATE.rows) if (r[0] > refDateSerial) refDateSerial = r[0];
+  const currentDays = STATE.settings.growthCurrentDays;
+  const priorDays = STATE.settings.growthPriorDays;
+  const currentWeekStart = refDateSerial - (currentDays-1);      // période en cours
+  const priorWeeksStart = refDateSerial - currentDays - priorDays + 1; // période de comparaison précédente
+  const priorWeeksEnd = refDateSerial - currentDays;
+  const growthRatio = STATE.settings.growthRatioThreshold;
+  const minRecentCA = STATE.settings.growthMinRecentCA;
+
+  const pairs = new Map(); // `${ci}|${variety}` -> {ci, variety, orders:[{d,montant}]}
+  const flowerVarieties = new Set();
+  for (const r of STATE.rows){
+    const [d, ci, ref, cat, montant, qty] = r;
+    if (cat !== 'X' && cat !== 'F') continue;
+    const name = STATE.clients[ci];
+    if (!name) continue;
+    if ((STATE.groups[name]||'Restaurant') !== 'Grossiste') continue;
+    if (STATE.paused[name]) continue; // les clients en pause n'apparaissent plus dans cet onglet
+    const variety = REF_VARIETY[ref];
+    if (!variety || EXCLUDE_VARIETIES.has(variety)) continue;
+    if (cat === 'F') flowerVarieties.add(variety);
+    const key = ci + '|' + variety;
+    if (!pairs.has(key)) pairs.set(key, {ci, variety, orders:[]});
+    pairs.get(key).orders.push({d, montant});
+  }
+
+  const items = [];
+  for (const {ci, variety, orders} of pairs.values()){
+    const recentCA = orders.filter(o=>o.d>=currentWeekStart && o.d<=refDateSerial).reduce((s,o)=>s+o.montant,0);
+    if (recentCA < minRecentCA) continue;
+    const priorCA = orders.filter(o=>o.d>=priorWeeksStart && o.d<=priorWeeksEnd).reduce((s,o)=>s+o.montant,0);
+    if (priorCA === 0){
+      items.push({ci, name: STATE.clients[ci], variety, type:'new', recentCA});
+      continue;
+    }
+    // Normalisation par taux journalier pour comparer équitablement des fenêtres de durées différentes
+    const recentDailyRate = recentCA / currentDays;
+    const priorDailyRate = priorCA / priorDays;
+    const priorEquivalent = priorDailyRate * currentDays; // ce que la période en cours aurait donné au rythme précédent
+    const ratio = recentDailyRate / priorDailyRate;
+    if (ratio >= growthRatio){
+      items.push({ci, name: STATE.clients[ci], variety, type:'surge', recentCA, priorCA28Equiv: priorEquivalent, ratio});
+    }
+  }
+
+  const byClient = new Map();
+  for (const it of items){
+    if (!byClient.has(it.ci)) byClient.set(it.ci, {ci: it.ci, name: it.name, items: []});
+    byClient.get(it.ci).items.push(it);
+  }
+  const rows = [...byClient.values()];
+  for (const r of rows) r.totalRecentCA = r.items.reduce((s,i)=>s+i.recentCA,0);
+  rows.sort((a,b)=> b.totalRecentCA - a.totalRecentCA);
+  return {rows, refDateSerial, flowerVarieties};
+}
+
+function renderGrowthSignals(){
+  const {rows, flowerVarieties} = computeGrowthSignals();
+  const ratio = STATE.settings.growthRatioThreshold;
+  const minCA = STATE.settings.growthMinRecentCA;
+  const curDays = STATE.settings.growthCurrentDays;
+  const priorDays = STATE.settings.growthPriorDays;
+  const wrap = document.getElementById('tableWrap');
+  if (!rows.length){
+    wrap.innerHTML = `<div class="empty-state"><h2>Rien à signaler pour l'instant</h2><p>Aucun grossiste n'a démarré ou fortement accéléré une variété sur les ${curDays} derniers jours (seuils actuels : au moins ${fmtEUR(minCA)}, et au moins x${ratio} par rapport au rythme des ${priorDays} jours précédents).</p></div>`;
+    return;
+  }
+  const vLabel = v => flowerVarieties.has(v) ? `${v} 🌸` : v;
+  const rowsHtml = rows.map(r=>{
+    const newItems = r.items.filter(it=>it.type==='new').sort((a,b)=> b.recentCA - a.recentCA);
+    const surgeItems = r.items.filter(it=>it.type==='surge').sort((a,b)=> b.recentCA - a.recentCA);
+    const newHtml = newItems.length
+      ? `<div class="cs-count">${newItems.length} variété(s)</div><div class="cs-list">${newItems.map(it=>`<span class="badge ok">${vLabel(it.variety)}<br><span style="opacity:.8;font-weight:400;">${fmtEUR(it.recentCA)} sur ${curDays}j</span></span>`).join('')}</div>`
+      : `<span class="small">—</span>`;
+    const surgeHtml = surgeItems.length
+      ? `<div class="cs-count">${surgeItems.length} variété(s)</div><div class="cs-list">${surgeItems.map(it=>`<span class="badge ok">${vLabel(it.variety)} — x${it.ratio.toFixed(1)}<br><span style="opacity:.8;font-weight:400;">${fmtEUR(it.recentCA)} vs ${fmtEUR(it.priorCA28Equiv)} habituel</span></span>`).join('')}</div>`
+      : `<span class="small">—</span>`;
+    const rowKey = r.name.replace(/"/g,'&quot;');
+    return `<tr>
+      <td class="cs-cell"><b>${r.name}</b><div class="small mono">${fmtEUR(r.totalRecentCA)} sur ${curDays}j (variétés signalées)</div></td>
+      <td class="cs-cell">${newHtml}</td>
+      <td class="cs-cell">${surgeHtml}</td>
+      <td class="row-actions"><button data-pause="${rowKey}">Pause</button></td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML = `
+    <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:16px;">
+      <div class="panel" style="flex:1;min-width:260px;margin-bottom:0;">
+        <h3 style="font-size:14px;">Grossistes en forte progression</h3>
+        <p class="hint">🌱 Nouveau = variété non commandée sur les ${priorDays} jours précédents, achetée sur les ${curDays} derniers jours. 📈 Forte hausse = variété déjà achetée sur les ${priorDays} jours précédents, mais dont le rythme sur les ${curDays} derniers jours est au moins ${ratio}× celui de la période précédente (ramené à une durée comparable). Seuil minimum de CA récent pour être signalé : ${fmtEUR(minCA)}. Ces deux durées et ce ratio sont réglables dans Paramètres. Les clients en pause n\u2019apparaissent pas ici.</p>
+      </div>
+    </div>
+    <table class="cs-table">
+      <colgroup><col style="width:18%"><col style="width:37%"><col style="width:37%"><col style="width:8%"></colgroup>
+      <thead><tr><th>Grossiste</th><th>🌱 Nouveau</th><th>📈 Forte hausse</th><th></th></tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+  `;
+  wirePauseButtons(wrap);
+}
+
+let synthExpanded = null; // quelle bulle est actuellement ouverte en détail ('stopped'|'buysless'|'variety'|'crosssell'|null)
+
+function renderSynthese(results, refDateSerial){
+  const active = results.filter(r => !r.paused);
+  const SYNTHESE_WINDOW_DAYS = 15;
+  const GROUP_ORDER = ['Grossiste','Restaurant','Traiteur','Metro'];
+
+  // Fenêtre glissante : seuls les changements des 15 derniers jours sont affichés.
+  const recentStops = active
+    .filter(r => r.inactive && (r.daysSince - STATE.settings.stoppedGapDays) <= SYNTHESE_WINDOW_DAYS)
+    .sort((a,b)=> a.daysSince - b.daysSince);
+  const recentLess = active
+    .filter(r => !r.inactive && r.buysLess && r.daysSince <= SYNTHESE_WINDOW_DAYS)
+    .sort((a,b)=> a.daysSince - b.daysSince);
+  const recentVariety = active
+    .filter(r => !r.inactive && r.basketReduced && r.daysSince <= SYNTHESE_WINDOW_DAYS)
+    .sort((a,b)=> a.daysSince - b.daysSince);
+
+  // Variétés récemment arrêtées chez les grossistes (onglet Cross-sell), même fenêtre glissante.
+  const crossData = computeCrossSell();
+  const recentCrossStops = [];
+  for (const cr of crossData.rows){
+    for (const s of cr.stopped){
+      const daysSinceStop = refDateSerial - s.lastDate;
+      const overBy = daysSinceStop - STATE.settings.crosssellStoppedDays;
+      if (overBy >= 0 && overBy <= SYNTHESE_WINDOW_DAYS){
+        recentCrossStops.push({
+          name: cr.name, group: 'Grossiste', variety: s.variety, lastDate: s.lastDate,
+          daysSinceStop, isFlower: crossData.flowerVarieties.has(s.variety)
+        });
+      }
+    }
+  }
+  recentCrossStops.sort((a,b)=> a.daysSinceStop - b.daysSinceStop);
+
+  const wrap = document.getElementById('tableWrap');
+
+  // ---- Fil "infos chaudes" : phrases en langage clair, les plus urgentes en premier ----
+  const highlights = [];
+  for (const r of recentStops){
+    highlights.push({rank:r.daysSince, html:`<span class="hl-icon">⚠️</span> <b>${r.name}</b> <span class="small">(${r.group})</span> est en arrêt total depuis <b>${r.daysSince} j</b>`});
+  }
+  for (const c of recentCrossStops){
+    highlights.push({rank:c.daysSinceStop, html:`<span class="hl-icon">⚠️</span> <b>${c.name}</b> a arrêté le <b>${c.variety}${c.isFlower?' 🌸':''}</b> depuis <b>${c.daysSinceStop} j</b>`});
+  }
+  for (const r of recentLess){
+    const pct = r.priorCA28Equiv>0 ? Math.round((1 - r.recentCA/r.priorCA28Equiv)*100) : null;
+    highlights.push({rank:r.daysSince, html:`<span class="hl-icon">📉</span> <b>${r.name}</b> <span class="small">(${r.group})</span> a baissé son CA${pct!=null?` de <b>${pct}%</b>`:''}`});
+  }
+  for (const r of recentVariety){
+    highlights.push({rank:r.daysSince, html:`<span class="hl-icon">📉</span> <b>${r.name}</b> <span class="small">(${r.group})</span> achète moins de variétés qu\u2019avant`});
+  }
+  highlights.sort((a,b)=> a.rank - b.rank);
+  const HIGHLIGHTS_MAX = 12;
+  const highlightsHtml = highlights.length
+    ? `<ul class="hl-list">${highlights.slice(0, HIGHLIGHTS_MAX).map(h=>`<li>${h.html}</li>`).join('')}</ul>${highlights.length>HIGHLIGHTS_MAX?`<p class="hint">+ ${highlights.length-HIGHLIGHTS_MAX} autre(s) — voir le détail par catégorie ci-dessous.</p>`:''}`
+    : `<p class="hint">Rien de chaud à signaler sur les ${SYNTHESE_WINDOW_DAYS} derniers jours. 👍</p>`;
+
+  // ---- Bulles cliquables par catégorie ----
+  const bubbleDefs = [
+    {key:'stopped', label:'Arrêt total', count:recentStops.length, color:'#B5432E'},
+    {key:'crosssell', label:'Variétés arrêtées (grossistes)', count:recentCrossStops.length, color:'#7A4FB5'},
+    {key:'buysless', label:'Achètent moins', count:recentLess.length, color:'#C97A1F'},
+    {key:'variety', label:'Moins de variété', count:recentVariety.length, color:'#8a5a1a'}
+  ];
+  const bubblesHtml = bubbleDefs.map(b => {
+    const isOpen = synthExpanded === b.key;
+    const bg = isOpen ? b.color : (b.count>0 ? b.color+'22' : '#F0EEE6');
+    const fg = isOpen ? '#fff' : (b.count>0 ? b.color : 'var(--muted)');
+    return `<button data-synth-bubble="${b.key}" style="cursor:pointer;border:2px solid ${b.count>0?b.color:'var(--border)'};background:${bg};color:${fg};border-radius:50%;width:104px;height:104px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:inherit;transition:.15s;flex-shrink:0;">
+      <span style="font-size:26px;font-weight:700;line-height:1;">${b.count}</span>
+      <span style="font-size:10.5px;font-weight:600;text-align:center;padding:4px 6px 0;line-height:1.2;">${b.label}</span>
+    </button>`;
+  }).join('');
+
+  function summaryLine(list){
+    const parts = GROUP_ORDER
+      .map(g => ({g, n: list.filter(r=>r.group===g).length}))
+      .filter(x => x.n>0)
+      .map(x => `${x.n} ${x.g}`);
+    return parts.length ? parts.join(' + ') : 'aucun';
+  }
+
+  function groupedTable(list, rowHtml, emptyMsg){
+    if (!list.length) return `<p class="hint">${emptyMsg}</p>`;
+    return GROUP_ORDER.map(g => {
+      const items = list.filter(r => r.group === g);
+      if (!items.length) return '';
+      return `<p class="hint" style="margin:14px 0 4px;"><b>${g} (${items.length})</b></p>
+        <table><tbody>${items.map(rowHtml).join('')}</tbody></table>`;
+    }).join('');
+  }
+
+  let detailHtml = '';
+  if (synthExpanded === 'stopped'){
+    detailHtml = groupedTable(recentStops, r => {
+      const rowKey = r.name.replace(/"/g,'&quot;');
+      return `<tr>
+        <td><b>${r.name}</b></td>
+        <td>Dernière commande le ${fmtDate(r.lastDate)} — ${r.daysSince} j sans achat</td>
+        <td class="mono">${fmtEUR(r.totalCA)}</td>
+        <td class="row-actions"><button data-pause="${rowKey}">Pause</button></td>
+      </tr>`;
+    }, `Aucun arrêt total détecté sur les ${SYNTHESE_WINDOW_DAYS} derniers jours.`);
+  } else if (synthExpanded === 'crosssell'){
+    detailHtml = recentCrossStops.length
+      ? `<table><tbody>${recentCrossStops.map(c=>`<tr>
+          <td><b>${c.name}</b></td>
+          <td>${c.variety}${c.isFlower?' 🌸':''} — plus achetée depuis ${fmtDate(c.lastDate)} (${c.daysSinceStop} j)</td>
+        </tr>`).join('')}</tbody></table>`
+      : `<p class="hint">Aucune variété récemment arrêtée chez les grossistes sur les ${SYNTHESE_WINDOW_DAYS} derniers jours.</p>`;
+  } else if (synthExpanded === 'buysless'){
+    detailHtml = groupedTable(recentLess, r => {
+      const rowKey = r.name.replace(/"/g,'&quot;');
+      const pct = r.priorCA28Equiv>0 ? Math.round((1 - r.recentCA/r.priorCA28Equiv)*100) : null;
+      return `<tr>
+        <td><b>${r.name}</b></td>
+        <td>Baisse de CA${pct!=null?` de ${pct}%`:''} — dernière commande le ${fmtDate(r.lastDate)}</td>
+        <td class="mono">${fmtEUR(r.totalCA)}</td>
+        <td class="row-actions"><button data-pause="${rowKey}">Pause</button></td>
+      </tr>`;
+    }, `Aucune baisse de CA détectée sur les ${SYNTHESE_WINDOW_DAYS} derniers jours.`);
+  } else if (synthExpanded === 'variety'){
+    detailHtml = groupedTable(recentVariety, r => {
+      const rowKey = r.name.replace(/"/g,'&quot;');
+      const pct = r.histAvgDistinct>0 ? Math.round((1 - r.recentDistinct/r.histAvgDistinct)*100) : null;
+      return `<tr>
+        <td><b>${r.name}</b></td>
+        <td>${r.recentDistinct} référence(s) sur les ${STATE.settings.varietyWindowDays} derniers jours, contre ${r.histAvgDistinct.toFixed(1)} habituellement${pct!=null?` (-${pct}%)`:''}</td>
+        <td class="mono">${fmtEUR(r.totalCA)}</td>
+        <td class="row-actions"><button data-pause="${rowKey}">Pause</button></td>
+      </tr>`;
+    }, `Aucune baisse de variété détectée sur les ${SYNTHESE_WINDOW_DAYS} derniers jours.`);
+  }
+
+  wrap.innerHTML = `
+    <div class="panel">
+      <p class="hint" style="margin-bottom:12px;">Clique sur une bulle pour voir le détail (regroupé par catégorie, ${SYNTHESE_WINDOW_DAYS} derniers jours). Tout l\u2019historique complet reste disponible dans les autres onglets.</p>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;">${bubblesHtml}</div>
+      ${synthExpanded ? `<div style="margin-top:18px;">${detailHtml}</div>` : ''}
+    </div>
+    <div class="panel">
+      <h3>Cette semaine</h3>
+      ${highlightsHtml}
+    </div>
+  `;
+
+  wrap.querySelectorAll('[data-synth-bubble]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      const key = e.currentTarget.getAttribute('data-synth-bubble');
+      synthExpanded = (synthExpanded === key) ? null : key;
+      renderSynthese(results, refDateSerial);
+    });
+  });
+  wirePauseButtons(wrap);
+}
+
+function render(){
+  const {results, refDateSerial} = computeClientStats();
+  renderHeader(refDateSerial);
+  renderKPIs(results);
+  renderTabs(results);
+  renderTabSettings();
+  renderReview();
+  renderPausedPanel();
+  renderClassifTable();
+  if (activeTab==='overview') renderSynthese(results, refDateSerial);
+  else if (activeTab==='crosssell') renderCrossSell();
+  else if (activeTab==='growth') renderGrowthSignals();
+  else renderTable(results, refDateSerial);
+}
+
+// ---------- Settings ----------
+const SETTINGS_META = [
+  {tab:'stopped', key:'stoppedGapDays', id:'s_stoppedGapDays', label:'Nombre de jours sans commande pour considérer l\u2019arrêt', min:1, max:90, type:'int'},
+  {tab:'buysless', key:'revenueDropRatio', id:'s_revenueDropPct', label:'Baisse de CA qui déclenche l\u2019alerte (%)', min:10, max:90, type:'pctDrop'},
+  {tab:'buysless', key:'buyslessWindowDays', id:'s_buyslessWindowDays', label:'Nombre de jours sur lesquels on observe cette baisse', min:1, max:90, type:'int'},
+  {tab:'variety', key:'basketDropRatio', id:'s_basketDropPct', label:'Baisse du nombre de références qui déclenche l\u2019alerte (%)', min:10, max:90, type:'pctDrop'},
+  {tab:'variety', key:'varietyWindowDays', id:'s_varietyWindowDays', label:'Nombre de jours sur lesquels on observe cette baisse', min:1, max:90, type:'int'},
+  {tab:'crosssell', key:'crosssellStoppedDays', id:'s_crosssellStoppedDays', label:'Nombre de jours sans achat pour considérer une variété comme arrêtée', min:1, max:60, type:'int'},
+  {tab:'growth', key:'growthRatioThreshold', id:'s_growthRatioThreshold', label:'Ratio min. pour "forte hausse" (x fois le rythme habituel)', min:1.2, max:10, step:0.1, type:'float'},
+  {tab:'growth', key:'growthMinRecentCA', id:'s_growthMinRecentCA', label:'CA récent min. sur la période en cours (€)', min:0, max:1000, type:'int'},
+  {tab:'growth', key:'growthCurrentDays', id:'s_growthCurrentDays', label:'Durée de la période "en cours" (jours)', min:1, max:60, type:'int'},
+  {tab:'growth', key:'growthPriorDays', id:'s_growthPriorDays', label:'Durée de la période de comparaison précédente (jours)', min:1, max:180, type:'int'}
+];
+
+const TAB_SETTINGS_HINT = {
+  stopped: `Un client est en arrêt total s\u2019il commandait régulièrement (au moins 1×/semaine pendant au moins ${WEEKLY_STREAK_MIN_WEEKS} semaines consécutives, à un moment de son historique) et n\u2019a plus rien commandé depuis plus longtemps que le nombre de jours réglé ci-dessous. Le nombre de semaines consécutives (${WEEKLY_STREAK_MIN_WEEKS}) est fixe, non réglable.`,
+  buysless: 'Exemple : avec 30% et 7 jours, un client est signalé si son CA sur les 7 derniers jours est au moins 30% inférieur à sa moyenne habituelle sur des périodes de 7 jours.',
+  variety: 'Exemple : avec 40% et 28 jours, un client est signalé si le nombre de références différentes achetées sur les 28 derniers jours est au moins 40% inférieur à sa moyenne habituelle sur des périodes de 28 jours.'
+};
+
+function renderTabSettings(){
+  const area = document.getElementById('tabSettingsArea');
+  if (!area) return;
+  const fields = SETTINGS_META.filter(f => f.tab === activeTab);
+  const hint = TAB_SETTINGS_HINT[activeTab] ? `<p class="hint" style="margin:${fields.length?'10px 0 0':'0'};">${TAB_SETTINGS_HINT[activeTab]}</p>` : '';
+  if (!fields.length){
+    area.innerHTML = hint ? `<div class="panel" style="margin-bottom:14px;">${hint}</div>` : '';
+    return;
+  }
+  const inputs = fields.map(f => `<label class="field">${f.label}<input type="number" id="${f.id}" min="${f.min}" max="${f.max}"${f.step?` step="${f.step}"`:''}></label>`).join('');
+  area.innerHTML = `<div class="panel" style="margin-bottom:14px;">
+    <div class="settings-grid">${inputs}</div>
+    ${hint}
+    <button id="saveSettingsBtn" class="primary" style="margin-top:10px;width:100%;">Appliquer</button>
+  </div>`;
+  fields.forEach(f=>{
+    const el = document.getElementById(f.id);
+    if (!el) return;
+    if (f.type==='pctDrop') el.value = Math.round((1 - STATE.settings[f.key])*100);
+    else if (f.type==='pct') el.value = Math.round(STATE.settings[f.key]*100);
+    else el.value = STATE.settings[f.key];
+  });
+  document.getElementById('saveSettingsBtn').addEventListener('click', saveSettingsForm);
+}
+
+async function saveSettingsForm(){
+  SETTINGS_META.forEach(f=>{
+    const el = document.getElementById(f.id);
+    if (!el) return; // pas affiché sur cet onglet actuellement : on ne touche pas à cette valeur
+    let v;
+    if (f.type==='pctDrop') v = 1 - ((parseInt(el.value) || Math.round((1-STATE.settings[f.key])*100)) / 100);
+    else if (f.type==='pct') v = (parseInt(el.value) || Math.round(STATE.settings[f.key]*100)) / 100;
+    else if (f.type==='float') v = parseFloat(el.value) || STATE.settings[f.key];
+    else v = parseInt(el.value) || STATE.settings[f.key];
+    STATE.settings[f.key] = v;
+  });
+  await persistAll();
+  render();
+}
+
+// ---------- Export ----------
+const CAT_LABEL = {
+  'P':'Micropousses S', 'X':'Micropousses XS', 'F':'Fleurs et herbes de Saint-Ouen',
+  'J':'Jeunes pousses', 'M':'Autres (gamme Metro)', 'S':'Micropousses Marseille',
+  'W':'Micropousses XS Marseille', 'N':'Herbes fraîches (Natoora)', 'O':'Autre / échantillon / frais'
+};
+
+function csvField(v){
+  const s = String(v==null ? '' : v);
+  if (s.includes(';') || s.includes('"') || s.includes('\n')) return '"' + s.replace(/"/g,'""') + '"';
+  return s;
+}
+function buildCSV(headers, rows){
+  const lines = [headers.map(csvField).join(';')];
+  for (const r of rows) lines.push(r.map(csvField).join(';'));
+  return lines.join('\r\n');
+}
+function triggerDownload(filename, content){
+  const blob = new Blob(['\ufeff' + content], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function exportRows(){
+  const headers = ['Date de livraison','Client','Groupe','Catégorie','Référence produit','Montant HT','Unités livrées'];
+  const rows = STATE.rows.map(r=>{
+    const [d, ci, ref, cat, montant, qty] = r;
+    const name = STATE.clients[ci] || '';
+    const group = STATE.groups[name] || 'Restaurant';
+    return [fmtDate(d), name, group, CAT_LABEL[cat]||cat, ref, String(montant).replace('.',','), String(qty).replace('.',',')];
+  });
+  const today = fmtDate(Math.floor((Date.now()-EPOCH_MS)/86400000)).replace(/\//g,'-');
+  triggerDownload(`wesh_grow_ventes_${today}.csv`, buildCSV(headers, rows));
+}
+
+function exportClassification(){
+  const headers = ['Client','Groupe'];
+  const rows = [...STATE.clients].sort((a,b)=>a.localeCompare(b)).map(name=>[name, STATE.groups[name]||'Restaurant']);
+  const today = fmtDate(Math.floor((Date.now()-EPOCH_MS)/86400000)).replace(/\//g,'-');
+  triggerDownload(`wesh_grow_classification_${today}.csv`, buildCSV(headers, rows));
+}
+
+// ---------- Wire up ----------
+async function main(){
+  const fu = document.getElementById('footerUser');
+  if (fu) fu.textContent = CURRENT_USER || '';
+
+  document.getElementById('syncSheetsBtn').addEventListener('click', refreshSalesData);
+  document.getElementById('exportRowsBtn').addEventListener('click', exportRows);
+  document.getElementById('exportClassifBtn').addEventListener('click', exportClassification);
+  document.getElementById('searchInput').addEventListener('input', (e)=>{ searchTerm = e.target.value; render(); });
+  document.getElementById('classifSearchInput').addEventListener('input', (e)=>{ classifSearchTerm = e.target.value; render(); });
+  document.getElementById('groupFilter').addEventListener('change', (e)=>{ groupFilter = e.target.value; render(); });
+  document.getElementById('sortSelect').addEventListener('change', (e)=>{ sortKey = e.target.value; render(); });
+  document.getElementById('showPausedChk').addEventListener('change', (e)=>{ showPaused = e.target.checked; render(); });
+
+  await loadStorage();
+  const sel0 = document.getElementById('sortSelect');
+  if (sel0) sel0.value = sortKey;
+  await refreshSalesData(); // charge les ventes depuis le Sheet ERP au démarrage
+}
+
+// ---------- Authentification Google (OAuth) ----------
+// La vraie sécurité vient du partage des Google Sheets ; AUTHORIZED_USERS n'est
+// qu'un affichage/pré-contrôle pour un message d'erreur plus clair.
+function showApp(){
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  main();
+}
+function showLogin(errorMsg){
+  document.getElementById('loginScreen').style.display = 'block';
+  document.getElementById('app').style.display = 'none';
+  const errEl = document.getElementById('loginError');
+  if (errorMsg){ errEl.textContent = errorMsg; errEl.style.display = 'block'; }
+  else { errEl.style.display = 'none'; }
+}
+
+let tokenClient = null;
+
+function initGoogleAuth(){
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_OAUTH_CONFIG.clientId,
+    scope: GOOGLE_OAUTH_CONFIG.scope,
+    callback: async (tokenResponse) => {
+      if (tokenResponse.error){
+        showLogin("Connexion refusée ou annulée. Réessaie.");
+        return;
+      }
+      ACCESS_TOKEN = tokenResponse.access_token;
+      try{
+        const resp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}` }
+        });
+        const info = await resp.json();
+        CURRENT_USER = info.email || 'compte Google';
+        if (!AUTHORIZED_USERS.some(u => normalizeUser(u) === normalizeUser(CURRENT_USER))){
+          // Pas dans la liste indicative : on prévient, mais on tente quand même l'accès
+          // (le vrai contrôle est le partage des Sheets, qui refusera si besoin).
+          console.warn('Utilisateur non présent dans AUTHORIZED_USERS :', CURRENT_USER);
+        }
+        showApp();
+      }catch(e){
+        showLogin("Connexion réussie mais impossible de récupérer l'email du compte. Réessaie.");
+        console.error(e);
+      }
+    }
+  });
+}
+
+document.getElementById('loginBtn').addEventListener('click', () => {
+  if (!tokenClient){
+    showLogin("La connexion Google n'est pas encore prête. Recharge la page (F5) et réessaie. Si ça persiste, vérifie qu'aucun bloqueur de publicités/traqueurs n'empêche accounts.google.com de se charger.");
+    return;
+  }
+  // prompt:'consent' force Google à réafficher l'écran d'autorisation complet à chaque connexion,
+  // plutôt que de réutiliser silencieusement un accord antérieur donné à ce même Client ID pour
+  // une autre application (ex: Suivi des tournées) avec des droits éventuellement plus limités —
+  // c'est exactement ce qui cause l'erreur "insufficient authentication scopes" (403).
+  tokenClient.requestAccessToken({ prompt: 'consent' });
+});
+
+// Sondage immédiat (ne dépend pas de l'événement 'load', qui peut se déclencher
+// avant que ce script n'ait eu la chance de s'y accrocher). Abandon après ~15s
+// avec un message clair si le script Google n'a vraiment pas pu se charger.
+(function waitForGisAndInit(){
+  let attempts = 0;
+  const maxAttempts = 150; // 150 x 100ms = 15s
+  const waitForGis = setInterval(() => {
+    attempts++;
+    if (window.google && window.google.accounts && window.google.accounts.oauth2){
+      clearInterval(waitForGis);
+      initGoogleAuth();
+      return;
+    }
+    if (attempts >= maxAttempts){
+      clearInterval(waitForGis);
+      console.error("Le script Google Identity Services (accounts.google.com/gsi/client) n'a pas pu être chargé après 15s.");
+    }
+  }, 100);
+})();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WESH GROW — Suivi OCAPIAT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root{
+  --ink:#1C2B22;
+  --ink-soft:#4B5A4F;
+  --paper:#F6F4EA;
+  --paper-alt:#EFEBDC;
+  --card:#FFFFFF;
+  --line:#E3DECB;
+  --forest:#14432A;
+  --forest-dark:#0D3320;
+  --forest-tint:#E4EEE6;
+  --gold:#B8862F;
+  --gold-tint:#F5EAD3;
+  --brick:#A13A2E;
+  --brick-tint:#F6E3DF;
+  --sage:#5C8A66;
+  --sage-tint:#E5F0E6;
+  --radius:14px;
+  --shadow: 0 1px 2px rgba(20,67,42,0.06), 0 4px 16px rgba(20,67,42,0.06);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Inter',sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:'IBM Plex Mono',monospace;}
+h1,h2,h3,.display{font-family:'Fraunces',serif;}
+
+/* ---------- Layout shell ---------- */
+.app{max-width:1240px;margin:0 auto;padding:0 24px 80px;}
+
+.topbar{
+  background:var(--forest);
+  color:#fff;
+  padding:28px 0 0;
+}
+.topbar-inner{max-width:1240px;margin:0 auto;padding:0 24px 22px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.brand{display:flex;align-items:center;gap:14px;}
+.brand-mark{
+  width:44px;height:44px;border-radius:10px;
+  background:linear-gradient(155deg,var(--sage),var(--forest-dark));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Fraunces',serif;font-weight:700;font-size:20px;color:#fff;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,0.15);
+}
+.brand-text .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#B9D3C0;font-weight:600;margin:0 0 2px;}
+.brand-text h1{font-size:26px;font-weight:600;margin:0;color:#fff;letter-spacing:-.01em;}
+.topbar-meta{text-align:right;color:#CFE3D4;font-size:12.5px;line-height:1.5;}
+.topbar-meta strong{color:#fff;}
+
+/* Tabs */
+.tabs{
+  display:flex;gap:4px;max-width:1240px;margin:0 auto;padding:0 24px;
+  border-bottom:1px solid rgba(255,255,255,0.12);
+}
+.tab-btn{
+  background:none;border:none;color:#BFD8C6;
+  font-family:'Inter',sans-serif;font-size:14px;font-weight:500;
+  padding:12px 16px;cursor:pointer;border-bottom:2px solid transparent;
+  transition:color .15s ease, border-color .15s ease;
+  white-space:nowrap;
+}
+.tab-btn:hover{color:#fff;}
+.tab-btn.active{color:#fff;border-bottom-color:var(--gold);font-weight:600;}
+
+.section{display:none;padding-top:28px;}
+.section.active{display:block;}
+
+/* ---------- KPI cards ---------- */
+.kpi-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:24px;
+}
+.kpi-card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px 18px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+}
+.kpi-card::before{content:"";position:absolute;top:0;left:0;width:4px;height:100%;}
+.kpi-card.c-neutral::before{background:var(--forest);}
+.kpi-card.c-good::before{background:var(--sage);}
+.kpi-card.c-warn::before{background:var(--gold);}
+.kpi-card.c-bad::before{background:var(--brick);}
+.kpi-label{font-size:12px;color:var(--ink-soft);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin:0 0 8px;}
+.kpi-value{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;color:var(--ink);margin:0;}
+.kpi-sub{font-size:12px;color:var(--ink-soft);margin-top:6px;}
+
+/* ---------- Signature growth ring + panel ---------- */
+.hero-row{display:grid;grid-template-columns:280px 1fr;gap:20px;margin-top:20px;}
+.ring-card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow); padding:22px; display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+}
+.ring-card h3{font-size:15px;margin:14px 0 2px;font-weight:600;color:var(--ink);}
+.ring-card p{font-size:12px;color:var(--ink-soft);margin:0;}
+.chart-card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow); padding:20px 20px 8px;
+}
+.chart-card h3{font-size:15px;margin:0 0 4px;font-weight:600;}
+.chart-card .sub{font-size:12px;color:var(--ink-soft);margin:0 0 10px;}
+
+/* ---------- Section headers ---------- */
+.block{margin-top:28px;}
+.block-head{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;}
+.block-head h2{font-size:20px;font-weight:600;margin:0;color:var(--forest-dark);}
+.block-head .count{font-size:12.5px;color:var(--ink-soft);}
+
+/* ---------- Filter chips ---------- */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.chip{
+  border:1px solid var(--line);background:var(--card);color:var(--ink-soft);
+  font-size:12.5px;font-weight:500;padding:7px 13px;border-radius:100px;cursor:pointer;
+  transition:all .15s ease;
+}
+.chip:hover{border-color:var(--forest);}
+.chip.active{background:var(--forest);color:#fff;border-color:var(--forest);}
+
+.search-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.search-input{
+  flex:1;min-width:220px;padding:9px 14px;border:1px solid var(--line);border-radius:10px;
+  font-family:'Inter',sans-serif;font-size:13.5px;background:var(--card);color:var(--ink);
+}
+.search-input:focus{outline:none;border-color:var(--forest);}
+
+/* ---------- Tables ---------- */
+.table-wrap{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow); overflow:hidden;
+}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{
+  text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;
+  color:var(--ink-soft);font-weight:600;background:var(--paper-alt);
+  padding:10px 14px;border-bottom:1px solid var(--line);white-space:nowrap;
+  cursor:pointer; user-select:none;
+}
+thead th:hover{color:var(--forest);}
+thead th .arrow{opacity:.4;font-size:10px;margin-left:3px;}
+tbody td{padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--ink);}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:var(--paper-alt);}
+.num{font-family:'IBM Plex Mono',monospace;text-align:right;white-space:nowrap;}
+.small-muted{font-size:11.5px;color:var(--ink-soft);}
+
+.pill{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600;white-space:nowrap;}
+.pill-cours{background:var(--sage-tint);color:#2E5E3C;}
+.pill-attente{background:var(--gold-tint);color:#8A6420;}
+.pill-solde{background:var(--forest-tint);color:var(--forest-dark);}
+.pill-rupture{background:var(--brick-tint);color:var(--brick);}
+.pill-relance{background:var(--brick-tint);color:var(--brick);}
+.pill-annulee{background:#EDEBE3;color:#7A7462;}
+.pill-payee{background:var(--forest-tint);color:var(--forest-dark);}
+
+.empty-state{padding:40px 20px;text-align:center;color:var(--ink-soft);font-size:13.5px;}
+
+/* Alert banner */
+.alert-banner{
+  display:flex;align-items:flex-start;gap:12px;
+  background:var(--brick-tint);border:1px solid #E4C3BC;border-radius:var(--radius);
+  padding:14px 18px;margin-top:20px;color:#6B2A21;font-size:13.5px;line-height:1.5;
+}
+.alert-banner strong{color:var(--brick);}
+.alert-dot{width:8px;height:8px;border-radius:50%;background:var(--brick);margin-top:6px;flex:none;}
+
+footer{margin-top:50px;padding-top:18px;border-top:1px solid var(--line);color:var(--ink-soft);font-size:11.5px;text-align:center;}
+
+@media (max-width: 880px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr);}
+  .hero-row{grid-template-columns:1fr;}
+  .topbar-meta{text-align:left;}
+}
+@media (max-width: 560px){
+  .kpi-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">W</div>
+      <div class="brand-text">
+        <p class="eyebrow">OCAPIAT · Suivi financier</p>
+        <h1>WESH GROW</h1>
+      </div>
+    </div>
+    <div class="topbar-meta">
+      Données au <strong>26/08/2026</strong><br>
+      Réf. tiers OCAPIAT · <strong>367630.001</strong><br>
+      <span id="sync-badge" style="font-size:11px;">⚪ Mode local</span>
+    </div>
+  </div>
+  <div class="tabs" id="tabs">
+    <button class="tab-btn active" data-tab="apercu">Aperçu</button>
+    <button class="tab-btn" data-tab="cours">Dossiers en cours</button>
+    <button class="tab-btn" data-tab="attente">En attente de paiement</button>
+    <button class="tab-btn" data-tab="factures">Factures</button>
+    <button class="tab-btn" data-tab="virements">Historique des virements</button>
+    <button class="tab-btn" data-tab="tous">Tous les dossiers</button>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- ================= APERCU ================= -->
+  <div class="section active" id="sec-apercu">
+
+    <div class="kpi-grid">
+      <div class="kpi-card c-neutral">
+        <p class="kpi-label">Montant engagé</p>
+        <p class="kpi-value" id="kpi-engage">—</p>
+        <p class="kpi-sub" id="kpi-engage-sub"></p>
+      </div>
+      <div class="kpi-card c-good">
+        <p class="kpi-label">Montant réglé</p>
+        <p class="kpi-value" id="kpi-regle">—</p>
+        <p class="kpi-sub" id="kpi-regle-sub"></p>
+      </div>
+      <div class="kpi-card c-warn">
+        <p class="kpi-label">Reste à percevoir</p>
+        <p class="kpi-value" id="kpi-reste">—</p>
+        <p class="kpi-sub" id="kpi-reste-sub"></p>
+      </div>
+      <div class="kpi-card c-bad">
+        <p class="kpi-label">Factures impayées</p>
+        <p class="kpi-value" id="kpi-impaye">—</p>
+        <p class="kpi-sub" id="kpi-impaye-sub"></p>
+      </div>
+    </div>
+
+    <div class="block" style="margin-top:16px;">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th id="reconciliation-title">Composition du reste à percevoir</th><th class="num">Nb. dossiers</th><th class="num">Montant</th><th>Où le retrouver</th></tr>
+          </thead>
+          <tbody id="reconciliation-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="hero-row">
+      <div class="ring-card">
+        <canvas id="ringChart" width="180" height="180"></canvas>
+        <h3>Taux de recouvrement</h3>
+        <p>Montant réglé sur montant engagé, tous dossiers confondus</p>
+      </div>
+      <div class="chart-card">
+        <h3>Engagé vs réglé par année de formation</h3>
+        <p class="sub">Basé sur l'année de début de formation des dossiers</p>
+        <canvas id="yearChart" height="130"></canvas>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="block-head">
+        <h2>Répartition des dossiers par statut</h2>
+        <span class="count" id="statut-count"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Statut</th><th>Nb. dossiers</th><th class="num">Engagé</th><th class="num">Réglé</th><th class="num">Reste à percevoir</th></tr>
+          </thead>
+          <tbody id="statut-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="alert-banner" id="alert-banner" style="display:none;">
+      <div class="alert-dot"></div>
+      <div id="alert-text"></div>
+    </div>
+
+  </div>
+
+  <!-- ================= EN COURS ================= -->
+  <div class="section" id="sec-cours">
+    <div class="block-head">
+      <h2>Dossiers en cours</h2>
+      <span class="count" id="cours-count"></span>
+    </div>
+    <p class="small-muted" style="margin-top:-6px;margin-bottom:14px;">Dossiers accordés dont la formation n'est pas encore terminée. Les montants réglés évolueront au fil des paiements OCAPIAT.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Intitulé</th><th>Collaborateur(s)</th><th>Nature</th><th>Début</th><th>Fin prévue</th>
+            <th class="num">Engagé</th><th class="num">Réglé</th><th class="num">Reste</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="cours-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ================= EN ATTENTE ================= -->
+  <div class="section" id="sec-attente">
+    <div class="block-head">
+      <h2>Formations terminées en attente de règlement</h2>
+      <span class="count" id="attente-count"></span>
+    </div>
+    <p class="small-muted" style="margin-top:-6px;margin-bottom:14px;">Ces dossiers sont accordés, la formation est finie, mais OCAPIAT n'a pas encore réglé tout ou partie du montant engagé. À relancer en priorité. <strong>Ce montant ne représente qu'une partie du « Reste à percevoir » global affiché dans l'Aperçu</strong> — les dossiers en cours et les ruptures ont aussi un reste, voir le tableau de composition sur l'onglet Aperçu.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Intitulé</th><th>Collaborateur(s)</th><th>Nature</th><th>Fin de formation</th>
+            <th class="num">Engagé</th><th class="num">Réglé</th><th class="num">Reste dû</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="attente-body"></tbody>
+      </table>
+    </div>
+
+    <div class="block">
+      <div class="block-head">
+        <h2>Ruptures de contrat</h2>
+        <span class="count" id="rupture-count"></span>
+      </div>
+      <p class="small-muted" style="margin-top:-6px;margin-bottom:14px;">Dossiers en rupture — à vérifier / clôturer côté OCAPIAT si non actif.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Intitulé</th><th>Collaborateur(s)</th><th>Nature</th><th>Début</th><th>Fin</th><th class="num">Engagé</th><th class="num">Réglé</th><th>Action</th></tr>
+          </thead>
+          <tbody id="rupture-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FACTURES ================= -->
+  <div class="section" id="sec-factures">
+    <div class="block-head">
+      <h2>Toutes les factures</h2>
+      <span class="count" id="factures-count"></span>
+    </div>
+    <p class="small-muted" style="margin-top:-6px;margin-bottom:14px;">
+      Le collaborateur est confirmé par un document officiel OCAPIAT (📄) quand disponible, sinon déduit par recoupement de montant (≈) — dans ce cas, si le montant est partagé par plusieurs stagiaires, tous les candidats possibles sont listés plutôt qu'un nom incertain.
+    </p>
+    <div class="chips" id="factures-chips">
+      <button class="chip active" data-filter="all">Toutes</button>
+      <button class="chip" data-filter="NON">Non payées</button>
+      <button class="chip" data-filter="OUI">Payées</button>
+      <button class="chip" data-filter="certain">Collaborateur identifié</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Référence</th><th>Collaborateur</th><th>Date facture</th><th>Date paiement</th><th>État</th>
+            <th class="num">Montant HT</th><th class="num">Montant TTC</th>
+          </tr>
+        </thead>
+        <tbody id="factures-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ================= VIREMENTS ================= -->
+  <div class="section" id="sec-virements">
+    <div class="block-head">
+      <h2>Historique des virements OCAPIAT</h2>
+      <span class="count" id="virements-count"></span>
+    </div>
+    <p class="small-muted" style="margin-top:-6px;margin-bottom:14px;">Reconstitué à partir des avis de paiement reçus. Reflète les virements bancaires effectivement encaissés depuis 2021.</p>
+    <div class="chart-card" style="margin-bottom:20px;">
+      <h3>Virements reçus par année</h3>
+      <canvas id="virementsChart" height="110"></canvas>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Date du virement</th><th class="num">Montant</th></tr>
+        </thead>
+        <tbody id="virements-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ================= TOUS ================= -->
+  <div class="section" id="sec-tous">
+    <div class="block-head">
+      <h2>Tous les dossiers</h2>
+      <span class="count" id="tous-count"></span>
+    </div>
+    <div class="search-row">
+      <input type="text" class="search-input" id="tous-search" placeholder="Rechercher un intitulé, un collaborateur, une nature de dossier…">
+    </div>
+    <div class="chips" id="tous-chips">
+      <button class="chip active" data-filter="all">Tous les statuts</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-key="intitule">Intitulé <span class="arrow"></span></th>
+            <th>Collaborateur(s)</th>
+            <th data-key="nature">Nature <span class="arrow"></span></th>
+            <th data-key="statut">Statut <span class="arrow"></span></th>
+            <th data-key="debut">Début <span class="arrow"></span></th>
+            <th data-key="fin">Fin <span class="arrow"></span></th>
+            <th data-key="engage" class="num">Engagé <span class="arrow"></span></th>
+            <th data-key="regle" class="num">Réglé <span class="arrow"></span></th>
+            <th data-key="reste" class="num">Reste <span class="arrow"></span></th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="tous-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    Tableau de bord interne WESH GROW — usage réservé aux collaborateurs habilités · Données OCAPIAT (réf. tiers 367630.001) au 26/08/2026
+  </footer>
+</div>
+
+<script>
+// Configuration de synchronisation partagée (Google Sheets via Apps Script).
+// Laisse API_URL vide pour rester en mode local (marquages non partagés).
+// Une fois le backend déployé (voir README.md), colle l'URL du déploiement ici.
+window.WG_CONFIG = {
+  API_URL: 'https://script.google.com/macros/s/AKfycbydL3BlR2MUayY2qjNyEYJx5FU4m0OIIjCBWbDfg_hvhE3IcXtpBt0i5mxo98EvXyFn/exec',
+  API_TOKEN: 'j4500HvAZFqQIcrPe4AwxNW7TyYlgkxY'
+};
+</script>
+
+<script>
+
+const DOSSIERS = [{"code": "23.A.102491.1", "entreprise": "SAS WESH GROW", "nature": "Ingenierie Etudes (Diag Rh,  Pcrh, Evalim)", "etat": "Clôturé", "intitule": "DEFI PRO JACOTIN Lise", "debut": "2023-08-16", "fin": "2023-08-16", "engage": 1200.0, "regle": 1200.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["Lise JACOTIN"]}, {"code": "23.C.108909.1", "entreprise": "SAS WESH GROW", "nature": "Contrat Experimental", "etat": "Accordé", "intitule": "Employée polyvalente R&D", "debut": "2023-08-21", "fin": "2024-08-21", "engage": 7440.0, "regle": 6947.3, "reste": 492.7, "statut": "Formation terminée - en attente de règlement", "collaborateurs": ["Lise JACOTIN"]}, {"code": "23.A.54038.1", "entreprise": "SAS WESH GROW", "nature": "Ingenierie Etudes (Diag Rh,  Pcrh, Evalim)", "etat": "Clôturé", "intitule": "DEFI PRO CABELLO", "debut": "2023-04-14", "fin": "2023-04-14", "engage": 1200.0, "regle": 1200.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["Javier CABELLO"]}, {"code": "23.C.53636.1", "entreprise": "SAS WESH GROW", "nature": "Contrat Experimental", "etat": "Accordé", "intitule": "Formation Assistant Chef de Culture", "debut": "2023-04-17", "fin": "2023-10-17", "engage": 5940.0, "regle": 5940.0, "reste": 0.0, "statut": "Formation terminée - soldé", "collaborateurs": ["Javier CABELLO"]}, {"code": "23.A.21947.1", "entreprise": "SAS WESH GROW", "nature": "Ingenierie Etudes (Diag Rh,  Pcrh, Evalim)", "etat": "Clôturé", "intitule": "PCRH - Prestation conseil RH", "debut": "2023-02-21", "fin": "2023-04-07", "engage": 9000.0, "regle": 9000.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["Camille COQUET"]}, {"code": "23.A.31489.1", "entreprise": "SAS WESH GROW", "nature": "Ingenierie Etudes (Diag Rh,  Pcrh, Evalim)", "etat": "Clôturé", "intitule": "DEFI PRO NEGRIT", "debut": "2023-02-27", "fin": "2023-02-27", "engage": 1200.0, "regle": 1200.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["Mathis NEGRIT"]}, {"code": "23.A.31493.1", "entreprise": "SAS WESH GROW", "nature": "Ingenierie Etudes (Diag Rh,  Pcrh, Evalim)", "etat": "Clôturé", "intitule": "DEFI PRO ACAF", "debut": "2023-02-27", "fin": "2023-02-27", "engage": 1200.0, "regle": 1200.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["Charbel ACAF"]}, {"code": "23.A.12023.1", "entreprise": "SAS WESH GROW", "nature": "Ingenierie Etudes (Diag Rh,  Pcrh, Evalim)", "etat": "Clôturé", "intitule": "DEFI Pro LE MERCIER", "debut": "2023-01-09", "fin": "2023-01-09", "engage": 1200.0, "regle": 1200.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["Camille COQUET"]}, {"code": "23.A.21836.1", "entreprise": "SAS WESH GROW", "nature": "Offre Regionale (Catalogue)", "etat": "Clôturé", "intitule": "Certiphyto Initial - opérateur", "debut": "2023-01-01", "fin": "2023-12-31", "engage": 336.0, "regle": 336.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["David RODRIGUES", "Léonard VIENNOT"]}, {"code": "23.A.22085.1", "entreprise": "SAS WESH GROW", "nature": "Offre Regionale (Catalogue)", "etat": "Clôturé", "intitule": "Certiphyto Initial - décideur en entreprise soumise à agréme", "debut": "2023-01-01", "fin": "2023-12-31", "engage": 504.0, "regle": 504.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["Camille COQUET", "Glenn CHEYNIER"]}, {"code": "23.C.12039.1", "entreprise": "SAS WESH GROW", "nature": "Contrat Experimental", "etat": "Accordé", "intitule": "Formation Chef de culture", "debut": "2023-01-09", "fin": "2024-01-09", "engage": 7440.0, "regle": 7440.0, "reste": 0.0, "statut": "Formation terminée - soldé", "collaborateurs": ["Jean-Baptiste LE MERCIER"]}, {"code": "23.A.85657.1", "entreprise": "SAS WESH GROW", "nature": "Ingenierie Etudes (Diag Rh,  Pcrh, Evalim)", "etat": "Clôturé", "intitule": "DEFI PRO Samuel NGUYEN", "debut": "2023-07-03", "fin": "2024-07-03", "engage": 1200.0, "regle": 1200.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["Samuel NGUYEN"]}, {"code": "23.C.85683.1", "entreprise": "SAS WESH GROW", "nature": "Contrat Experimental", "etat": "Accordé", "intitule": "Formation Employé Polyvalent", "debut": "2023-07-03", "fin": "2024-07-03", "engage": 7440.0, "regle": 7440.0, "reste": 0.0, "statut": "Formation terminée - soldé", "collaborateurs": ["Samuel NGUYEN"]}, {"code": "23.A.57033.1", "entreprise": "SAS WESH GROW", "nature": "Offre Regionale (Catalogue)", "etat": "Clôturé", "intitule": "Sauveteur Secouriste du Travail (SST) – Formation initiale", "debut": "2023-06-14", "fin": "2023-06-15", "engage": 260.0, "regle": 260.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["Lucas DESJARDINS"]}, {"code": "23.A.33886.1", "entreprise": "SAS WESH GROW", "nature": "Ingenierie Etudes (Diag Rh,  Pcrh, Evalim)", "etat": "Clôturé", "intitule": "DEFI PRO TEYSSIER", "debut": "2023-03-03", "fin": "2023-03-03", "engage": 1200.0, "regle": 1200.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["Amelie TEYSSIER"]}, {"code": "23.C.33871.1", "entreprise": "SAS WESH GROW", "nature": "Contrat Experimental", "etat": "Accordé", "intitule": "Formation Employé polyvalent /ouvrier agricole", "debut": "2023-03-01", "fin": "2024-03-01", "engage": 7440.0, "regle": 7440.0, "reste": 0.0, "statut": "Formation terminée - soldé", "collaborateurs": ["Mathis NEGRIT"]}, {"code": "23.C.36786.1", "entreprise": "SAS WESH GROW", "nature": "Contrat Experimental", "etat": "Rupture", "intitule": "Ouvrière agricole", "debut": "2023-03-06", "fin": "2023-11-06", "engage": 6440.0, "regle": 0.0, "reste": 6440.0, "statut": "Rupture de contrat", "collaborateurs": ["Amélie TEYSSIER"]}, {"code": "23.C.37886.1", "entreprise": "SAS WESH GROW", "nature": "Contrat Experimental", "etat": "Accordé", "intitule": "Formation Employé Polyvalent / Préparateur Commandes", "debut": "2023-03-06", "fin": "2024-03-06", "engage": 7440.0, "regle": 7440.0, "reste": 0.0, "statut": "Formation terminée - soldé", "collaborateurs": ["Charbel ACAF"]}, {"code": "23.C.163093.1", "entreprise": "SAS WESH GROW", "nature": "Contrat Experimental", "etat": "Clôturé", "intitule": "Employée polyvalente", "debut": "2023-11-06", "fin": "2024-11-06", "engage": 7440.0, "regle": 7440.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["Louis-Camille PERRIERE"]}, {"code": "23.A.145957.1", "entreprise": "SAS WESH GROW", "nature": "Ingenierie Etudes (Diag Rh,  Pcrh, Evalim)", "etat": "Clôturé", "intitule": "DEFI PRO - Gaspard MEGIER", "debut": "2023-10-02", "fin": "2024-10-02", "engage": 1200.0, "regle": 1200.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["Gaspard MEGIER"]}, {"code": "23.A.153079.1", "entreprise": "SAS WESH GROW", "nature": "Offre Regionale (Catalogue)", "etat": "Clôturé", "intitule": "Certiphyto Initial - opérateur", "debut": "2023-10-01", "fin": "2023-12-31", "engage": 336.0, "regle": 336.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["André NAVARD", "Charbel ACAF"]}, {"code": "23.A.162691.1", "entreprise": "SAS WESH GROW", "nature": "Ingenierie Etudes (Diag Rh,  Pcrh, Evalim)", "etat": "Clôturé", "intitule": "DEFI PRO - Louis Camille PERRIERE", "debut": "2023-10-30", "fin": "2023-10-30", "engage": 1200.0, "regle": 1200.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["Louis-Camille PERRIERE"]}, {"code": "23.C.146002.1", "entreprise": "SAS WESH GROW", "nature": "Contrat Experimental", "etat": "Clôturé", "intitule": "Employé polyvalent", "debut": "2023-10-02", "fin": "2024-10-02", "engage": 5190.0, "regle": 5190.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["Gaspard MEGIER"]}, {"code": "23.A.138439.1", "entreprise": "SAS WESH GROW", "nature": "Ingenierie Etudes (Diag Rh,  Pcrh, Evalim)", "etat": "Clôturé", "intitule": "DEFI PRO - André NAVARD", "debut": "2023-09-22", "fin": "2023-09-22", "engage": 1200.0, "regle": 1200.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["André NAVARD"]}, {"code": "23.C.138412.1", "entreprise": "SAS WESH GROW", "nature": "Contrat Experimental", "etat": "Accordé", "intitule": "Responsable Production Fleurs / Opérateur R&D", "debut": "2023-09-25", "fin": "2024-09-25", "engage": 7440.0, "regle": 690.0, "reste": 6750.0, "statut": "Formation terminée - en attente de règlement", "collaborateurs": ["André NAVARD"]}, {"code": "23.P.112782.1", "entreprise": "SAS WESH GROW", "nature": "Contrat D'Apprentissage V2", "etat": "Clôturé", "intitule": "CHARGE DE DEVELOPPEMENT MARKETING ET COMMERCIAL", "debut": "2023-09-04", "fin": "2025-10-30", "engage": 14504.0, "regle": 14504.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["Paul HERRISSON GARIN"]}, {"code": "23.P.118336.1", "entreprise": "SAS WESH GROW", "nature": "Contrat D'Apprentissage V2", "etat": "Accordé", "intitule": "BUT GBGE", "debut": "2023-09-01", "fin": "2024-09-04", "engage": 9425.0, "regle": 9425.0, "reste": 0.0, "statut": "Formation terminée - soldé", "collaborateurs": ["Jade JEANPIERRE"]}, {"code": "24.C.188470.1", "entreprise": "SAS WESH GROW", "nature": "Contrat De Professionnalisation", "etat": "Accordé", "intitule": "Assistante Responsable Horticulture et R1D", "debut": "2024-12-16", "fin": "2025-12-16", "engage": 7440.0, "regle": 7440.0, "reste": 0.0, "statut": "Formation terminée - soldé", "collaborateurs": ["Salma CHATTI"]}, {"code": "24.A.11884.1", "entreprise": "SAS WESH GROW", "nature": "Offre Regionale (Catalogue)", "etat": "Clôturé", "intitule": "Certiphyto Initial - opérateur", "debut": "2024-01-01", "fin": "2024-12-31", "engage": 700.0, "regle": 700.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["Lise JACOTIN", "Lucas DESJARDINS"]}, {"code": "24.A.21427.1", "entreprise": "SAS WESH GROW", "nature": "Defi Emploi", "etat": "Clôturé", "intitule": "DEFI EMPLOI CABELLO", "debut": "2024-01-26", "fin": "2024-05-31", "engage": 1800.0, "regle": 1800.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["Javier CABELLO"]}, {"code": "24.C.103871.1", "entreprise": "SAS WESH GROW", "nature": "Contrat De Professionnalisation", "etat": "Accordé", "intitule": "Employé Polyvalent", "debut": "2024-07-22", "fin": "2025-07-22", "engage": 7440.0, "regle": 0.0, "reste": 7440.0, "statut": "Formation terminée - en attente de règlement", "collaborateurs": ["Thomas DECHY"]}, {"code": "24.C.76473.1", "entreprise": "SAS WESH GROW", "nature": "Contrat De Professionnalisation", "etat": "Rupture", "intitule": "Employé polyvalent", "debut": "2024-06-03", "fin": "2024-12-03", "engage": 5940.0, "regle": 0.0, "reste": 5940.0, "statut": "Rupture de contrat", "collaborateurs": ["Matthieu LE GENTIL"]}, {"code": "24.C.80586.1", "entreprise": "SAS WESH GROW", "nature": "Contrat De Professionnalisation", "etat": "Accordé", "intitule": "Employée polyvalente", "debut": "2024-06-24", "fin": "2025-06-24", "engage": 7440.0, "regle": 7440.0, "reste": 0.0, "statut": "Formation terminée - soldé", "collaborateurs": ["Marie BESNEHARD"]}, {"code": "24.C.32384.1", "entreprise": "SAS WESH GROW", "nature": "Contrat De Professionnalisation", "etat": "Clôturé", "intitule": "Formation Employé Polyvalent", "debut": "2024-03-04", "fin": "2024-11-04", "engage": 6440.0, "regle": 6440.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["Etienne PINCK"]}, {"code": "24.C.40906.1", "entreprise": "SAS WESH GROW", "nature": "Contrat De Professionnalisation", "etat": "Accordé", "intitule": "Employée polyvalente", "debut": "2024-03-04", "fin": "2026-03-04", "engage": 10690.0, "regle": 10690.0, "reste": 0.0, "statut": "Formation terminée - soldé", "collaborateurs": ["Nithiwat WANNASIRI"]}, {"code": "24.A.152047.1", "entreprise": "SAS WESH GROW", "nature": "Offre Regionale (Catalogue)", "etat": "Clôturé", "intitule": "Certiphyto Initial - opérateur", "debut": "2024-11-25", "fin": "2024-11-26", "engage": 350.0, "regle": 350.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["Marie BESNEHARD"]}, {"code": "24.C.147877.1", "entreprise": "SAS WESH GROW", "nature": "Contrat Experimental", "etat": "Accordé", "intitule": "Employé polyvalent", "debut": "2024-10-07", "fin": "2025-10-07", "engage": 6750.0, "regle": 0.0, "reste": 6750.0, "statut": "Formation terminée - en attente de règlement", "collaborateurs": ["Arthur JASMIN"]}, {"code": "24.C.159385.1", "entreprise": "SAS WESH GROW", "nature": "Contrat Experimental", "etat": "Accordé", "intitule": "Employé polyvalent", "debut": "2024-10-21", "fin": "2025-10-21", "engage": 6750.0, "regle": 0.0, "reste": 6750.0, "statut": "Formation terminée - en attente de règlement", "collaborateurs": ["Marin GINTZ"]}, {"code": "24.A.131927.1", "entreprise": "SAS WESH GROW", "nature": "Ingenierie Etudes (Diag Rh,  Pcrh, Evalim)", "etat": "Clôturé", "intitule": "DEFI PRO - BIDONDO MATTHIEU", "debut": "2024-09-09", "fin": "2024-09-09", "engage": 600.0, "regle": 600.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["Matthieu BIDONDO"]}, {"code": "24.C.125540.1", "entreprise": "SAS WESH GROW", "nature": "Contrat Experimental", "etat": "Accordé", "intitule": "Employé polyvalent", "debut": "2024-09-10", "fin": "2025-03-10", "engage": 5250.0, "regle": 5250.0, "reste": 0.0, "statut": "Formation terminée - soldé", "collaborateurs": ["Matthieu BIDONDO"]}, {"code": "25.C.57540.1", "entreprise": "SAS WESH GROW", "nature": "Contrat De Professionnalisation", "etat": "Rupture", "intitule": "Employé polyvalent - Ouvrière agricole", "debut": "2025-04-22", "fin": "2025-10-22", "engage": 5940.0, "regle": 0.0, "reste": 5940.0, "statut": "Rupture de contrat", "collaborateurs": ["Tom REBOH"]}, {"code": "25.A.187235.1", "entreprise": "SAS WESH GROW", "nature": "Aide Fonction Maitre Apprentissage - Tuteur", "etat": "Accordé", "intitule": "Fonction tutorale (contrat n° 25.C.184796.1 FOUACHE Alice)", "debut": "2025-12-08", "fin": "2026-12-08", "engage": 1150.0, "regle": 0.0, "reste": 1150.0, "statut": "Formation en cours", "collaborateurs": ["Marie BESNEHARD"]}, {"code": "25.C.184796.1", "entreprise": "SAS WESH GROW", "nature": "Contrat De Professionnalisation", "etat": "Accordé", "intitule": "Formation employé polyvalent - Ouvrier agricole", "debut": "2025-12-08", "fin": "2026-12-08", "engage": 6750.0, "regle": 0.0, "reste": 6750.0, "statut": "Formation en cours", "collaborateurs": ["Alice FOUACHE"]}, {"code": "25.C.35201.1", "entreprise": "SAS WESH GROW", "nature": "Contrat De Professionnalisation", "etat": "Accordé", "intitule": "Responsable commercial", "debut": "2025-02-03", "fin": "2026-02-03", "engage": 7440.0, "regle": 7440.0, "reste": 0.0, "statut": "Formation terminée - soldé", "collaborateurs": ["Charles MAUSSION"]}, {"code": "25.C.93600.1", "entreprise": "SAS WESH GROW", "nature": "Contrat De Professionnalisation", "etat": "Accordé", "intitule": "Formation Employé Polyvalent - Ouvrier Agricole", "debut": "2025-06-02", "fin": "2025-12-02", "engage": 5940.0, "regle": 5250.0, "reste": 690.0, "statut": "Formation terminée - en attente de règlement", "collaborateurs": ["Dmytro BYKOV"]}, {"code": "25.C.35030.1", "entreprise": "SAS WESH GROW", "nature": "Contrat De Professionnalisation", "etat": "Accordé", "intitule": "Formation employée polyvalente - Ouvrière agricole", "debut": "2025-03-03", "fin": "2025-11-03", "engage": 6440.0, "regle": 6440.0, "reste": 0.0, "statut": "Formation terminée - soldé", "collaborateurs": ["Nadjete HABIB"]}, {"code": "25.C.46559.1", "entreprise": "SAS WESH GROW", "nature": "Contrat De Professionnalisation", "etat": "Accordé", "intitule": "Employé polyvalent", "debut": "2025-03-24", "fin": "2026-03-24", "engage": 7440.0, "regle": 0.0, "reste": 7440.0, "statut": "Formation terminée - en attente de règlement", "collaborateurs": ["Morgan CALMONTE"]}, {"code": "25.A.161308.1", "entreprise": "SAS WESH GROW", "nature": "Boost Competences", "etat": "Clôturé", "intitule": "Développer l'autonomie et la confiance du manager", "debut": "2025-11-13", "fin": "2025-11-15", "engage": 5268.0, "regle": 5268.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["Camille COQUET", "Charbel ACAF", "Charles MAUSSION", "Glenn CHEYNIER", "Lucas DESJARDINS", "Marie BESNEHARD"]}, {"code": "25.C.152581.1", "entreprise": "SAS WESH GROW", "nature": "Contrat De Professionnalisation", "etat": "Accordé", "intitule": "Employé polyvalent", "debut": "2025-09-16", "fin": "2026-09-16", "engage": 6750.0, "regle": 1687.5, "reste": 5062.5, "statut": "Formation en cours", "collaborateurs": ["Sylvan THEVENON"]}, {"code": "26.C.59657.1", "entreprise": "SAS WESH GROW", "nature": "Contrat De Professionnalisation", "etat": "Accordé", "intitule": "Formation employé polyvalente - ouvrière agricole", "debut": "2026-04-20", "fin": "2027-04-20", "engage": 6750.0, "regle": 0.0, "reste": 6750.0, "statut": "Formation en cours", "collaborateurs": ["Clara GOUABLIN"]}, {"code": "26.A.16210.1", "entreprise": "SAS WESH GROW", "nature": "Offre Regionale (Catalogue)", "etat": "Clôturé", "intitule": "Certiphyto Initial - opérateur", "debut": "2026-06-04", "fin": "2026-06-05", "engage": 350.0, "regle": 350.0, "reste": 0.0, "statut": "Clôturé - soldé", "collaborateurs": ["Arthur JASMIN"]}, {"code": "26.C.83181.1", "entreprise": "SAS WESH GROW", "nature": "Contrat De Professionnalisation", "etat": "Accordé", "intitule": "Employé polyvalent - ouvrier agricole", "debut": "2026-06-22", "fin": "2027-06-22", "engage": 6750.0, "regle": 0.0, "reste": 6750.0, "statut": "Formation en cours", "collaborateurs": ["Augustin VERMOT-PETIT-OUTHENIN"]}, {"code": "26.C.102069.1", "entreprise": "SAS WESH GROW", "nature": "Contrat De Professionnalisation", "etat": "Accordé", "intitule": "Formation employé polyvalent - ouvrier agricole", "debut": "2026-06-01", "fin": "2027-06-01", "engage": 8332.6, "regle": 0.0, "reste": 8332.6, "statut": "Formation en cours", "collaborateurs": ["Malang SONKO"]}, {"code": "24.C.143516.1", "entreprise": "WESH GROW", "nature": "Contrat De Professionnalisation", "etat": "Accordé", "intitule": "Responsable de la ferme", "debut": "2024-07-25", "fin": "2025-07-25", "engage": 7440.0, "regle": 7440.0, "reste": 0.0, "statut": "Formation terminée - soldé", "collaborateurs": ["Sophie XI"]}, {"code": "25.C.109823.1", "entreprise": "WESH GROW", "nature": "Contrat De Professionnalisation", "etat": "Accordé", "intitule": "Employée polyvalente", "debut": "2025-07-15", "fin": "2026-07-15", "engage": 7440.0, "regle": 0.0, "reste": 7440.0, "statut": "Formation terminée - en attente de règlement", "collaborateurs": ["Kimberley RIOLLACI"]}, {"code": "25.C.97921.1", "entreprise": "WESH GROW", "nature": "Contrat De Professionnalisation", "etat": "Accordé", "intitule": "Responsable de Ferme", "debut": "2025-05-19", "fin": "2026-05-19", "engage": 7440.0, "regle": 0.0, "reste": 7440.0, "statut": "Formation terminée - en attente de règlement", "collaborateurs": ["Zacharie KLIS"]}, {"code": "26.C.102117.1", "entreprise": "WESH GROW", "nature": "Contrat De Professionnalisation", "etat": "Accordé", "intitule": "Employée polyvalente - ouvrière agricole", "debut": "2026-06-01", "fin": "2027-06-01", "engage": 6750.0, "regle": 0.0, "reste": 6750.0, "statut": "Formation en cours", "collaborateurs": ["Lorédane PATRON DELAPORTE"]}];
+const FACTURES = [{"ref": "AUTOFACTURATION", "date_facture": "30/01/2025", "date_reception": "30/01/2025", "date_paiement": "-", "etat": "Annulée", "ht": 6750.0, "ttc": 8100.0, "payee": "NON", "collab_status": "ambigu", "collab_candidates": ["Alice FOUACHE", "André NAVARD", "Arthur JASMIN", "Augustin VERMOT-PETIT-OUTHENIN", "Charbel ACAF", "Charles MAUSSION", "Clara GOUABLIN", "Jean-Baptiste LE MERCIER", "Kimberley RIOLLACI", "Lise JACOTIN", "Lorédane PATRON DELAPORTE", "Louis-Camille PERRIERE", "Marie BESNEHARD", "Marin GINTZ", "Mathis NEGRIT", "Morgan CALMONTE", "Salma CHATTI", "Samuel NGUYEN", "Sophie XI", "Sylvan THEVENON", "Thomas DECHY", "Zacharie KLIS"], "collab_source": null}, {"ref": "AUTOFACTURATION", "date_facture": "02/03/2026", "date_reception": "02/03/2026", "date_paiement": "-", "etat": "Annulée", "ht": 6750.0, "ttc": 8100.0, "payee": "NON", "collab_status": "certain", "collab_candidates": ["Charles MAUSSION"], "collab_source": "document officiel (auto-facturation / relance)"}, {"ref": "AUTOFACTURATION", "date_facture": "29/07/2026", "date_reception": "29/07/2026", "date_paiement": "-", "etat": "Relancée", "ht": 5130.0, "ttc": 6156.0, "payee": "NON", "collab_status": "certain", "collab_candidates": ["Marin GINTZ"], "collab_source": "document officiel (auto-facturation / relance)"}, {"ref": "OCAPIAT - 367630.001 - 20", "date_facture": "16/01/2023", "date_reception": "16/01/2023", "date_paiement": "26/01/2023", "etat": "Payée", "ht": 3300.0, "ttc": 3960.0, "payee": "OUI", "collab_status": "aucun", "collab_candidates": [], "collab_source": null}, {"ref": "OCAPIAT - 367630.001 - 21", "date_facture": "17/04/2023", "date_reception": "17/04/2023", "date_paiement": "28/04/2023", "etat": "Payée", "ht": 1380.0, "ttc": 1656.0, "payee": "OUI", "collab_status": "certain", "collab_candidates": ["Paul HERRISSON GARIN"], "collab_source": "montant unique"}, {"ref": "OCAPIAT - 367630.001 - 22", "date_facture": "17/04/2023", "date_reception": "17/04/2023", "date_paiement": "28/04/2023", "etat": "Payée", "ht": 1380.0, "ttc": 1656.0, "payee": "OUI", "collab_status": "certain", "collab_candidates": ["Paul HERRISSON GARIN"], "collab_source": "montant unique"}, {"ref": "OCAPIAT - 367630.001 - 23", "date_facture": "17/04/2023", "date_reception": "17/04/2023", "date_paiement": "28/04/2023", "etat": "Payée", "ht": 690.0, "ttc": 828.0, "payee": "OUI", "collab_status": "ambigu", "collab_candidates": ["Amélie TEYSSIER", "André NAVARD", "Charbel ACAF", "Charles MAUSSION", "Dmytro BYKOV", "Etienne PINCK", "Gaspard MEGIER", "Javier CABELLO", "Jean-Baptiste LE MERCIER", "Kimberley RIOLLACI", "Lise JACOTIN", "Louis-Camille PERRIERE", "Marie BESNEHARD", "Mathis NEGRIT", "Matthieu LE GENTIL", "Morgan CALMONTE", "Nadjete HABIB", "Nithiwat WANNASIRI", "Salma CHATTI", "Samuel NGUYEN", "Sophie XI", "Thomas DECHY", "Tom REBOH", "Zacharie KLIS"], "collab_source": null}, {"ref": "OCAPIAT - 367630.001 - 24", "date_facture": "28/12/2023", "date_reception": "28/12/2023", "date_paiement": "04/01/2024", "etat": "Payée", "ht": 690.0, "ttc": 828.0, "payee": "OUI", "collab_status": "ambigu", "collab_candidates": ["Amélie TEYSSIER", "André NAVARD", "Charbel ACAF", "Charles MAUSSION", "Dmytro BYKOV", "Etienne PINCK", "Gaspard MEGIER", "Javier CABELLO", "Jean-Baptiste LE MERCIER", "Kimberley RIOLLACI", "Lise JACOTIN", "Louis-Camille PERRIERE", "Marie BESNEHARD", "Mathis NEGRIT", "Matthieu LE GENTIL", "Morgan CALMONTE", "Nadjete HABIB", "Nithiwat WANNASIRI", "Salma CHATTI", "Samuel NGUYEN", "Sophie XI", "Thomas DECHY", "Tom REBOH", "Zacharie KLIS"], "collab_source": null}, {"ref": "OCAPIAT - 367630.001 - 25", "date_facture": "08/01/2024", "date_reception": "08/01/2024", "date_paiement": "24/01/2024", "etat": "Payée", "ht": 6750.0, "ttc": 8100.0, "payee": "OUI", "collab_status": "ambigu", "collab_candidates": ["Alice FOUACHE", "André NAVARD", "Arthur JASMIN", "Augustin VERMOT-PETIT-OUTHENIN", "Charbel ACAF", "Charles MAUSSION", "Clara GOUABLIN", "Jean-Baptiste LE MERCIER", "Kimberley RIOLLACI", "Lise JACOTIN", "Lorédane PATRON DELAPORTE", "Louis-Camille PERRIERE", "Marie BESNEHARD", "Marin GINTZ", "Mathis NEGRIT", "Morgan CALMONTE", "Salma CHATTI", "Samuel NGUYEN", "Sophie XI", "Sylvan THEVENON", "Thomas DECHY", "Zacharie KLIS"], "collab_source": null}, {"ref": "OCAPIAT - 367630.001 - 26", "date_facture": "18/01/2024", "date_reception": "18/01/2024", "date_paiement": "24/01/2024", "etat": "Payée", "ht": 5250.0, "ttc": 6300.0, "payee": "OUI", "collab_status": "ambigu", "collab_candidates": ["Dmytro BYKOV", "Javier CABELLO", "Matthieu BIDONDO", "Matthieu LE GENTIL", "Tom REBOH"], "collab_source": null}, {"ref": "OCAPIAT - 367630.001 - 27", "date_facture": "16/02/2024", "date_reception": "16/02/2024", "date_paiement": "20/02/2024", "etat": "Payée", "ht": 1380.0, "ttc": 1656.0, "payee": "OUI", "collab_status": "certain", "collab_candidates": ["Paul HERRISSON GARIN"], "collab_source": "montant unique"}, {"ref": "OCAPIAT - 367630.001 - 28", "date_facture": "04/03/2024", "date_reception": "04/03/2024", "date_paiement": "12/03/2024", "etat": "Payée", "ht": 690.0, "ttc": 828.0, "payee": "OUI", "collab_status": "ambigu", "collab_candidates": ["Amélie TEYSSIER", "André NAVARD", "Charbel ACAF", "Charles MAUSSION", "Dmytro BYKOV", "Etienne PINCK", "Gaspard MEGIER", "Javier CABELLO", "Jean-Baptiste LE MERCIER", "Kimberley RIOLLACI", "Lise JACOTIN", "Louis-Camille PERRIERE", "Marie BESNEHARD", "Mathis NEGRIT", "Matthieu LE GENTIL", "Morgan CALMONTE", "Nadjete HABIB", "Nithiwat WANNASIRI", "Salma CHATTI", "Samuel NGUYEN", "Sophie XI", "Thomas DECHY", "Tom REBOH", "Zacharie KLIS"], "collab_source": null}, {"ref": "OCAPIAT - 367630.001 - 29", "date_facture": "04/03/2024", "date_reception": "04/03/2024", "date_paiement": "12/03/2024", "etat": "Payée", "ht": 690.0, "ttc": 828.0, "payee": "OUI", "collab_status": "ambigu", "collab_candidates": ["Amélie TEYSSIER", "André NAVARD", "Charbel ACAF", "Charles MAUSSION", "Dmytro BYKOV", "Etienne PINCK", "Gaspard MEGIER", "Javier CABELLO", "Jean-Baptiste LE MERCIER", "Kimberley RIOLLACI", "Lise JACOTIN", "Louis-Camille PERRIERE", "Marie BESNEHARD", "Mathis NEGRIT", "Matthieu LE GENTIL", "Morgan CALMONTE", "Nadjete HABIB", "Nithiwat WANNASIRI", "Salma CHATTI", "Samuel NGUYEN", "Sophie XI", "Thomas DECHY", "Tom REBOH", "Zacharie KLIS"], "collab_source": null}, {"ref": "OCAPIAT - 367630.001 - 30", "date_facture": "04/03/2024", "date_reception": "04/03/2024", "date_paiement": "12/03/2024", "etat": "Payée", "ht": 690.0, "ttc": 828.0, "payee": "OUI", "collab_status": "ambigu", "collab_candidates": ["Amélie TEYSSIER", "André NAVARD", "Charbel ACAF", "Charles MAUSSION", "Dmytro BYKOV", "Etienne PINCK", "Gaspard MEGIER", "Javier CABELLO", "Jean-Baptiste LE MERCIER", "Kimberley RIOLLACI", "Lise JACOTIN", "Louis-Camille PERRIERE", "Marie BESNEHARD", "Mathis NEGRIT", "Matthieu LE GENTIL", "Morgan CALMONTE", "Nadjete HABIB", "Nithiwat WANNASIRI", "Salma CHATTI", "Samuel NGUYEN", "Sophie XI", "Thomas DECHY", "Tom REBOH", "Zacharie KLIS"], "collab_source": null}, {"ref": "OCAPIAT - 367630.001 - 31", "date_facture": "23/04/2024", "date_reception": "23/04/2024", "date_paiement": "15/05/2024", "etat": "Payée", "ht": 6947.3, "ttc": 8336.76, "payee": "OUI", "collab_status": "aucun", "collab_candidates": [], "collab_source": null}, {"ref": "OCAPIAT - 367630.001 - 32", "date_facture": "23/04/2024", "date_reception": "23/04/2024", "date_paiement": "15/05/2024", "etat": "Payée", "ht": 6750.0, "ttc": 8100.0, "payee": "OUI", "collab_status": "ambigu", "collab_candidates": ["Alice FOUACHE", "André NAVARD", "Arthur JASMIN", "Augustin VERMOT-PETIT-OUTHENIN", "Charbel ACAF", "Charles MAUSSION", "Clara GOUABLIN", "Jean-Baptiste LE MERCIER", "Kimberley RIOLLACI", "Lise JACOTIN", "Lorédane PATRON DELAPORTE", "Louis-Camille PERRIERE", "Marie BESNEHARD", "Marin GINTZ", "Mathis NEGRIT", "Morgan CALMONTE", "Salma CHATTI", "Samuel NGUYEN", "Sophie XI", "Sylvan THEVENON", "Thomas DECHY", "Zacharie KLIS"], "collab_source": null}, {"ref": "OCAPIAT - 367630.001 - 33", "date_facture": "14/05/2024", "date_reception": "14/05/2024", "date_paiement": "23/05/2024", "etat": "Payée", "ht": 6750.0, "ttc": 8100.0, "payee": "OUI", "collab_status": "ambigu", "collab_candidates": ["Alice FOUACHE", "André NAVARD", "Arthur JASMIN", "Augustin VERMOT-PETIT-OUTHENIN", "Charbel ACAF", "Charles MAUSSION", "Clara GOUABLIN", "Jean-Baptiste LE MERCIER", "Kimberley RIOLLACI", "Lise JACOTIN", "Lorédane PATRON DELAPORTE", "Louis-Camille PERRIERE", "Marie BESNEHARD", "Marin GINTZ", "Mathis NEGRIT", "Morgan CALMONTE", "Salma CHATTI", "Samuel NGUYEN", "Sophie XI", "Sylvan THEVENON", "Thomas DECHY", "Zacharie KLIS"], "collab_source": null}, {"ref": "OCAPIAT - 367630.001 - 34", "date_facture": "08/07/2024", "date_reception": "08/07/2024", "date_paiement": "16/07/2024", "etat": "Payée", "ht": 1200.0, "ttc": 1440.0, "payee": "OUI", "collab_status": "ambigu", "collab_candidates": ["Amelie TEYSSIER", "André NAVARD", "Camille COQUET", "Charbel ACAF", "Gaspard MEGIER", "Javier CABELLO", "Lise JACOTIN", "Louis-Camille PERRIERE", "Mathis NEGRIT", "Samuel NGUYEN"], "collab_source": null}, {"ref": "OCAPIAT - 367630.001 - 35", "date_facture": "06/03/2025", "date_reception": "06/03/2025", "date_paiement": "11/03/2025", "etat": "Payée", "ht": 690.0, "ttc": 828.0, "payee": "OUI", "collab_status": "ambigu", "collab_candidates": ["Amélie TEYSSIER", "André NAVARD", "Charbel ACAF", "Charles MAUSSION", "Dmytro BYKOV", "Etienne PINCK", "Gaspard MEGIER", "Javier CABELLO", "Jean-Baptiste LE MERCIER", "Kimberley RIOLLACI", "Lise JACOTIN", "Louis-Camille PERRIERE", "Marie BESNEHARD", "Mathis NEGRIT", "Matthieu LE GENTIL", "Morgan CALMONTE", "Nadjete HABIB", "Nithiwat WANNASIRI", "Salma CHATTI", "Samuel NGUYEN", "Sophie XI", "Thomas DECHY", "Tom REBOH", "Zacharie KLIS"], "collab_source": null}, {"ref": "OCAPIAT - 367630.001 - 36", "date_facture": "13/12/2024", "date_reception": "13/12/2024", "date_paiement": "14/05/2025", "etat": "Payée", "ht": 5190.0, "ttc": 6228.0, "payee": "OUI", "collab_status": "certain", "collab_candidates": ["Gaspard MEGIER"], "collab_source": "montant unique"}, {"ref": "OCAPIAT - 367630.001 - 37", "date_facture": "26/02/2025", "date_reception": "26/02/2025", "date_paiement": "14/05/2025", "etat": "Payée", "ht": 7440.0, "ttc": 8928.0, "payee": "OUI", "collab_status": "ambigu", "collab_candidates": ["André NAVARD", "Charbel ACAF", "Charles MAUSSION", "Jean-Baptiste LE MERCIER", "Kimberley RIOLLACI", "Lise JACOTIN", "Louis-Camille PERRIERE", "Marie BESNEHARD", "Mathis NEGRIT", "Morgan CALMONTE", "Salma CHATTI", "Samuel NGUYEN", "Sophie XI", "Thomas DECHY", "Zacharie KLIS"], "collab_source": null}, {"ref": "OCAPIAT - 367630.001 - 38", "date_facture": "26/05/2025", "date_reception": "26/05/2025", "date_paiement": "04/06/2025", "etat": "Payée", "ht": 6750.0, "ttc": 8100.0, "payee": "OUI", "collab_status": "ambigu", "collab_candidates": ["Alice FOUACHE", "André NAVARD", "Arthur JASMIN", "Augustin VERMOT-PETIT-OUTHENIN", "Charbel ACAF", "Charles MAUSSION", "Clara GOUABLIN", "Jean-Baptiste LE MERCIER", "Kimberley RIOLLACI", "Lise JACOTIN", "Lorédane PATRON DELAPORTE", "Louis-Camille PERRIERE", "Marie BESNEHARD", "Marin GINTZ", "Mathis NEGRIT", "Morgan CALMONTE", "Salma CHATTI", "Samuel NGUYEN", "Sophie XI", "Sylvan THEVENON", "Thomas DECHY", "Zacharie KLIS"], "collab_source": null}, {"ref": "OCAPIAT - 367630.001 - 39", "date_facture": "30/06/2025", "date_reception": "30/06/2025", "date_paiement": "09/07/2025", "etat": "Payée", "ht": 690.0, "ttc": 828.0, "payee": "OUI", "collab_status": "ambigu", "collab_candidates": ["Amélie TEYSSIER", "André NAVARD", "Charbel ACAF", "Charles MAUSSION", "Dmytro BYKOV", "Etienne PINCK", "Gaspard MEGIER", "Javier CABELLO", "Jean-Baptiste LE MERCIER", "Kimberley RIOLLACI", "Lise JACOTIN", "Louis-Camille PERRIERE", "Marie BESNEHARD", "Mathis NEGRIT", "Matthieu LE GENTIL", "Morgan CALMONTE", "Nadjete HABIB", "Nithiwat WANNASIRI", "Salma CHATTI", "Samuel NGUYEN", "Sophie XI", "Thomas DECHY", "Tom REBOH", "Zacharie KLIS"], "collab_source": null}, {"ref": "OCAPIAT - 367630.001 - 40", "date_facture": "25/06/2025", "date_reception": "25/06/2025", "date_paiement": "03/12/2025", "etat": "Payée", "ht": 690.0, "ttc": 828.0, "payee": "OUI", "collab_status": "ambigu", "collab_candidates": ["Amélie TEYSSIER", "André NAVARD", "Charbel ACAF", "Charles MAUSSION", "Dmytro BYKOV", "Etienne PINCK", "Gaspard MEGIER", "Javier CABELLO", "Jean-Baptiste LE MERCIER", "Kimberley RIOLLACI", "Lise JACOTIN", "Louis-Camille PERRIERE", "Marie BESNEHARD", "Mathis NEGRIT", "Matthieu LE GENTIL", "Morgan CALMONTE", "Nadjete HABIB", "Nithiwat WANNASIRI", "Salma CHATTI", "Samuel NGUYEN", "Sophie XI", "Thomas DECHY", "Tom REBOH", "Zacharie KLIS"], "collab_source": null}, {"ref": "OCAPIAT - 367630.001 - 41", "date_facture": "16/12/2025", "date_reception": "16/12/2025", "date_paiement": "13/01/2026", "etat": "Payée", "ht": 5268.0, "ttc": 6321.6, "payee": "OUI", "collab_status": "aucun", "collab_candidates": [], "collab_source": null}, {"ref": "OCAPIAT - 367630.001 - 42", "date_facture": "25/06/2025", "date_reception": "25/06/2025", "date_paiement": "27/01/2026", "etat": "Payée", "ht": 690.0, "ttc": 828.0, "payee": "OUI", "collab_status": "ambigu", "collab_candidates": ["Amélie TEYSSIER", "André NAVARD", "Charbel ACAF", "Charles MAUSSION", "Dmytro BYKOV", "Etienne PINCK", "Gaspard MEGIER", "Javier CABELLO", "Jean-Baptiste LE MERCIER", "Kimberley RIOLLACI", "Lise JACOTIN", "Louis-Camille PERRIERE", "Marie BESNEHARD", "Mathis NEGRIT", "Matthieu LE GENTIL", "Morgan CALMONTE", "Nadjete HABIB", "Nithiwat WANNASIRI", "Salma CHATTI", "Samuel NGUYEN", "Sophie XI", "Thomas DECHY", "Tom REBOH", "Zacharie KLIS"], "collab_source": null}, {"ref": "OCAPIAT - 367630.001 - 43", "date_facture": "21/01/2026", "date_reception": "21/01/2026", "date_paiement": "27/01/2026", "etat": "Payée", "ht": 5250.0, "ttc": 6300.0, "payee": "OUI", "collab_status": "ambigu", "collab_candidates": ["Dmytro BYKOV", "Javier CABELLO", "Matthieu BIDONDO", "Matthieu LE GENTIL", "Tom REBOH"], "collab_source": null}, {"ref": "OCAPIAT - 367630.001 - 44", "date_facture": "02/02/2026", "date_reception": "02/02/2026", "date_paiement": "11/02/2026", "etat": "Payée", "ht": 5750.0, "ttc": 6900.0, "payee": "OUI", "collab_status": "certain", "collab_candidates": ["Etienne PINCK"], "collab_source": "document officiel (auto-facturation / relance)"}, {"ref": "OCAPIAT - 367630.001 - 45", "date_facture": "21/01/2026", "date_reception": "21/01/2026", "date_paiement": "11/02/2026", "etat": "Payée", "ht": 6750.0, "ttc": 8100.0, "payee": "OUI", "collab_status": "certain", "collab_candidates": ["Salma CHATTI"], "collab_source": "document officiel (auto-facturation / relance)"}, {"ref": "OCAPIAT - 367630.001 - 46", "date_facture": "21/01/2026", "date_reception": "21/01/2026", "date_paiement": "03/03/2026", "etat": "Payée", "ht": 6750.0, "ttc": 8100.0, "payee": "OUI", "collab_status": "certain", "collab_candidates": ["Marie BESNEHARD"], "collab_source": "document officiel (auto-facturation / relance)"}, {"ref": "OCAPIAT - 367630.001 - 47", "date_facture": "04/02/2026", "date_reception": "04/02/2026", "date_paiement": "03/03/2026", "etat": "Payée", "ht": 5750.0, "ttc": 6900.0, "payee": "OUI", "collab_status": "certain", "collab_candidates": ["Nadjete HABIB"], "collab_source": "document officiel (auto-facturation / relance)"}, {"ref": "OCAPIAT - 367630.001 - 48", "date_facture": "26/02/2026", "date_reception": "26/02/2026", "date_paiement": "03/03/2026", "etat": "Payée", "ht": 690.0, "ttc": 828.0, "payee": "OUI", "collab_status": "certain", "collab_candidates": ["Nadjete HABIB"], "collab_source": "document officiel (auto-facturation / relance)"}, {"ref": "OCAPIAT - 367630.001 - 49", "date_facture": "21/01/2026", "date_reception": "21/01/2026", "date_paiement": "03/03/2026", "etat": "Payée", "ht": 5250.0, "ttc": 6300.0, "payee": "OUI", "collab_status": "certain", "collab_candidates": ["Dmytro BYKOV"], "collab_source": "document officiel (auto-facturation / relance)"}, {"ref": "OCAPIAT - 367630.001 - 50", "date_facture": "02/03/2026", "date_reception": "02/03/2026", "date_paiement": "10/03/2026", "etat": "Payée", "ht": 1687.5, "ttc": 2025.0, "payee": "OUI", "collab_status": "certain", "collab_candidates": ["Sylvan THEVENON"], "collab_source": "document officiel (auto-facturation / relance)"}, {"ref": "OCAPIAT - 367630.001 - 51", "date_facture": "04/03/2026", "date_reception": "04/03/2026", "date_paiement": "10/03/2026", "etat": "Payée", "ht": 690.0, "ttc": 828.0, "payee": "OUI", "collab_status": "certain", "collab_candidates": ["Charles MAUSSION"], "collab_source": "document officiel (auto-facturation / relance)"}, {"ref": "OCAPIAT - 367630.001 - 52", "date_facture": "27/04/2026", "date_reception": "27/04/2026", "date_paiement": "05/05/2026", "etat": "Payée", "ht": 6750.0, "ttc": 8100.0, "payee": "OUI", "collab_status": "certain", "collab_candidates": ["Charles MAUSSION"], "collab_source": "document officiel (auto-facturation / relance)"}, {"ref": "OCAPIAT - 367630.001 - 53", "date_facture": "30/06/2025", "date_reception": "30/06/2025", "date_paiement": "28/05/2026", "etat": "Payée", "ht": 690.0, "ttc": 828.0, "payee": "OUI", "collab_status": "certain", "collab_candidates": ["Nithiwat WANNASIRI"], "collab_source": "document officiel (auto-facturation / relance)"}, {"ref": "OCAPIAT - 367630.001 - 54", "date_facture": "29/06/2026", "date_reception": "29/06/2026", "date_paiement": "11/08/2026", "etat": "Payée", "ht": 10000.0, "ttc": 12000.0, "payee": "OUI", "collab_status": "certain", "collab_candidates": ["Nithiwat WANNASIRI"], "collab_source": "document officiel (auto-facturation / relance)"}, {"ref": "OCAPIAT - 367630.002 - 1", "date_facture": "25/06/2025", "date_reception": "25/06/2025", "date_paiement": "09/07/2025", "etat": "Payée", "ht": 690.0, "ttc": 828.0, "payee": "OUI", "collab_status": "ambigu", "collab_candidates": ["Amélie TEYSSIER", "André NAVARD", "Charbel ACAF", "Charles MAUSSION", "Dmytro BYKOV", "Etienne PINCK", "Gaspard MEGIER", "Javier CABELLO", "Jean-Baptiste LE MERCIER", "Kimberley RIOLLACI", "Lise JACOTIN", "Louis-Camille PERRIERE", "Marie BESNEHARD", "Mathis NEGRIT", "Matthieu LE GENTIL", "Morgan CALMONTE", "Nadjete HABIB", "Nithiwat WANNASIRI", "Salma CHATTI", "Samuel NGUYEN", "Sophie XI", "Thomas DECHY", "Tom REBOH", "Zacharie KLIS"], "collab_source": null}, {"ref": "OCAPIAT - 367630.002 - 2", "date_facture": "21/01/2026", "date_reception": "21/01/2026", "date_paiement": "27/01/2026", "etat": "Payée", "ht": 6750.0, "ttc": 8100.0, "payee": "OUI", "collab_status": "ambigu", "collab_candidates": ["Alice FOUACHE", "André NAVARD", "Arthur JASMIN", "Augustin VERMOT-PETIT-OUTHENIN", "Charbel ACAF", "Charles MAUSSION", "Clara GOUABLIN", "Jean-Baptiste LE MERCIER", "Kimberley RIOLLACI", "Lise JACOTIN", "Lorédane PATRON DELAPORTE", "Louis-Camille PERRIERE", "Marie BESNEHARD", "Marin GINTZ", "Mathis NEGRIT", "Morgan CALMONTE", "Salma CHATTI", "Samuel NGUYEN", "Sophie XI", "Sylvan THEVENON", "Thomas DECHY", "Zacharie KLIS"], "collab_source": null}];
+const VIREMENTS = [{"date": "2021-10-26", "montant": 1656.0}, {"date": "2021-11-16", "montant": 3960.0}, {"date": "2021-12-15", "montant": 15840.0}, {"date": "2022-05-17", "montant": 3960.0}, {"date": "2022-06-15", "montant": 3960.0}, {"date": "2022-09-13", "montant": 1656.0}, {"date": "2022-09-28", "montant": 1656.0}, {"date": "2022-10-05", "montant": 3960.0}, {"date": "2022-10-05", "montant": 3960.0}, {"date": "2022-12-20", "montant": 3960.0}, {"date": "2023-01-26", "montant": 3960.0}, {"date": "2023-04-29", "montant": 4140.0}, {"date": "2024-01-04", "montant": 828.0}, {"date": "2024-01-24", "montant": 14400.0}, {"date": "2024-02-20", "montant": 1656.0}, {"date": "2024-03-12", "montant": 2484.0}, {"date": "2024-05-15", "montant": 16436.76}, {"date": "2024-05-24", "montant": 8100.0}, {"date": "2024-07-17", "montant": 1440.0}, {"date": "2025-03-11", "montant": 828.0}, {"date": "2025-05-14", "montant": 15156.0}, {"date": "2025-06-04", "montant": 8100.0}, {"date": "2025-07-09", "montant": 828.0}, {"date": "2025-12-04", "montant": 828.0}, {"date": "2026-01-14", "montant": 6321.6}, {"date": "2026-01-27", "montant": 7128.0}, {"date": "2026-02-13", "montant": 15000.0}, {"date": "2026-03-03", "montant": 22128.0}, {"date": "2026-03-11", "montant": 2853.0}, {"date": "2026-05-05", "montant": 8100.0}, {"date": "2026-05-28", "montant": 828.0}, {"date": "2026-08-12", "montant": 12000.0}];
+
+</script>
+<script>
+// ---------- Helpers ----------
+const fmtEUR = (n) => (Math.round(n*100)/100).toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
+const fmtEURshort = (n) => Math.round(n).toLocaleString('fr-FR') + ' €';
+const fmtDateISO = (s) => { if(!s) return '—'; const [y,m,d]=s.split('-'); return `${d}/${m}/${y}`; };
+const sum = (arr, key) => arr.reduce((a,b)=>a+(b[key]||0),0);
+const fmtCollab = (arr) => (arr && arr.length) ? arr.join(', ') : '<span class="small-muted">—</span>';
+
+const STATUT_PILL = {
+  'Formation en cours': 'pill-cours',
+  'Formation terminée - en attente de règlement': 'pill-attente',
+  'Formation terminée - soldé': 'pill-solde',
+  'Clôturé - soldé': 'pill-solde',
+  'Clôturé - reste à percevoir': 'pill-attente',
+  'Rupture de contrat': 'pill-rupture',
+};
+
+let CHART_INSTANCES = {};
+function makeChart(canvasId, config){
+  if(CHART_INSTANCES[canvasId]){ CHART_INSTANCES[canvasId].destroy(); }
+  CHART_INSTANCES[canvasId] = new Chart(document.getElementById(canvasId), config);
+  return CHART_INSTANCES[canvasId];
+}
+
+// ---------- Synchronisation "dossiers arrêtés/refusés" ----------
+// Priorité : API Google Apps Script (partagée, cf README) si configurée et disponible.
+// Repli automatique : localStorage (local à ce navigateur uniquement).
+const OVERRIDE_KEY = 'wg_ocapiat_overrides_v1';
+const NAME_KEY = 'wg_ocapiat_display_name';
+const CONFIG = (typeof window !== 'undefined' && window.WG_CONFIG) ? window.WG_CONFIG : {};
+const API_URL = CONFIG.API_URL || '';
+const API_TOKEN = CONFIG.API_TOKEN || '';
+
+let DOSSIER_OVERRIDES = {};
+let SYNC_MODE = 'local'; // 'cloud' | 'local' | 'error'
+let SYNC_USER = null;
+
+function loadOverridesLocal_(){
+  try { return JSON.parse(localStorage.getItem(OVERRIDE_KEY)) || {}; }
+  catch(e){ return {}; }
+}
+function saveOverridesLocal_(o){
+  try { localStorage.setItem(OVERRIDE_KEY, JSON.stringify(o)); } catch(e){}
+}
+function getDisplayName_(){
+  let name = null;
+  try { name = localStorage.getItem(NAME_KEY); } catch(e){}
+  if(!name){
+    name = prompt('Ton nom (affiché quand tu marques un dossier, ex: "Camille"):', '') || 'Collaborateur';
+    try { localStorage.setItem(NAME_KEY, name); } catch(e){}
+  }
+  return name;
+}
+
+function updateSyncBadge(){
+  const el = document.getElementById('sync-badge');
+  if(!el) return;
+  if(SYNC_MODE==='cloud'){
+    el.textContent = '🟢 Synchronisé (' + (SYNC_USER||'Google Sheets') + ')';
+    el.title = 'Les marquages sont partagés avec les autres collaborateurs autorisés.';
+  } else if(SYNC_MODE==='error'){
+    el.textContent = '🟠 Non synchronisé — enregistrement local uniquement';
+    el.title = 'Connexion à Google Sheets impossible (jeton, réseau, ou configuration). Voir README.';
+  } else {
+    el.textContent = '⚪ Mode local — non partagé';
+    el.title = 'API_URL/API_TOKEN non configurés : les marquages restent sur cet appareil.';
+  }
+}
+
+async function initOverrides(){
+  DOSSIER_OVERRIDES = loadOverridesLocal_(); // valeur immédiate pour affichage instantané
+  if(!API_URL || !API_TOKEN){ SYNC_MODE='local'; updateSyncBadge(); return; }
+  try {
+    const url = API_URL + '?token=' + encodeURIComponent(API_TOKEN);
+    const res = await fetch(url, {method:'GET'});
+    const data = await res.json();
+    if(data.error){ SYNC_MODE='error'; console.warn('Sync error:', data.error); updateSyncBadge(); return; }
+    DOSSIER_OVERRIDES = data.overrides || {};
+    SYNC_USER = data.user || null;
+    SYNC_MODE = 'cloud';
+    saveOverridesLocal_(DOSSIER_OVERRIDES); // copie locale de secours
+  } catch(e){
+    SYNC_MODE = 'error';
+    console.warn('Sync fetch failed, using local copy', e);
+  }
+  updateSyncBadge();
+  renderAll();
+}
+
+function isStopped(code){
+  return !!(DOSSIER_OVERRIDES[code] && DOSSIER_OVERRIDES[code].stopped);
+}
+async function toggleStopped(code, reason){
+  const cur = DOSSIER_OVERRIDES[code] || {};
+  const nextStopped = !cur.stopped;
+  const who = (API_URL && API_TOKEN) ? getDisplayName_() : (SYNC_USER||'moi');
+  const payload = { token: API_TOKEN, who, code, stopped: nextStopped, reason: nextStopped ? (reason || 'Signalé par un collaborateur') : '' };
+
+  // Mise à jour optimiste locale immédiate
+  DOSSIER_OVERRIDES[code] = nextStopped
+    ? { stopped:true, reason: payload.reason, date: new Date().toISOString().slice(0,10), modifiedBy: who }
+    : { stopped:false };
+  saveOverridesLocal_(DOSSIER_OVERRIDES);
+  renderAll();
+
+  if(!API_URL || !API_TOKEN) return; // mode local uniquement, rien d'autre à faire
+  try {
+    const res = await fetch(API_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'}, // évite le preflight CORS sur Apps Script
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if(data.error){ SYNC_MODE='error'; console.warn(data.error); updateSyncBadge(); return; }
+    DOSSIER_OVERRIDES = data.overrides || DOSSIER_OVERRIDES;
+    SYNC_USER = data.user || SYNC_USER;
+    SYNC_MODE = 'cloud';
+    saveOverridesLocal_(DOSSIER_OVERRIDES);
+  } catch(e){
+    SYNC_MODE = 'error';
+    console.warn('Sync post failed, kept local change', e);
+  }
+  updateSyncBadge();
+  renderAll();
+}
+function effectiveReste(d){
+  return isStopped(d.code) ? 0 : d.reste;
+}
+function stoppedBadge(code){
+  const o = DOSSIER_OVERRIDES[code];
+  if(!o || !o.stopped) return '';
+  const who = o.modifiedBy ? ` par ${o.modifiedBy}` : '';
+  return `<div class="small-muted" style="color:#A13A2E;margin-top:2px;">⛔ Signalé arrêté/refusé le ${fmtDateISO(o.date)}${who}</div>`;
+}
+function toggleButton(code){
+  const stopped = isStopped(code);
+  const label = stopped ? 'Marqué arrêté/refusé' : 'Marquer arrêté/refusé';
+  const cls = stopped ? 'chip active' : 'chip';
+  return `<button class="${cls}" style="font-size:11px;padding:4px 10px;white-space:nowrap;" onclick="promptToggle('${code}')">${label}</button>`;
+}
+function promptToggle(code){
+  if(isStopped(code)){
+    if(confirm('Retirer le marquage "arrêté/refusé" pour ce dossier ?')) toggleStopped(code);
+  } else {
+    const reason = prompt('Raison (optionnel) — ex: "Refusé, non réception justificatifs" ou "Rupture confirmée par le collaborateur":', '');
+    toggleStopped(code, reason);
+  }
+}
+
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('sec-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ================= APERCU =================
+function renderApercu(){
+  const totalEngage = sum(DOSSIERS,'engage');
+  const totalRegle = sum(DOSSIERS,'regle');
+  const totalResteEff = DOSSIERS.reduce((a,d)=>a+effectiveReste(d),0);
+  const stoppedList = DOSSIERS.filter(d=>isStopped(d.code));
+  const facturesImpayees = FACTURES.filter(f=>f.payee==='NON');
+  const totalImpaye = sum(facturesImpayees,'ttc');
+
+  document.getElementById('kpi-engage').textContent = fmtEURshort(totalEngage);
+  document.getElementById('kpi-engage-sub').textContent = DOSSIERS.length + ' dossiers au total';
+
+  document.getElementById('kpi-regle').textContent = fmtEURshort(totalRegle);
+  document.getElementById('kpi-regle-sub').textContent = ((totalRegle/totalEngage)*100).toFixed(0) + '% du montant engagé';
+
+  document.getElementById('kpi-reste').textContent = fmtEURshort(totalResteEff);
+  const nbAttente = DOSSIERS.filter(d=>effectiveReste(d)>0.01).length;
+  const resteEnCours = DOSSIERS.filter(d=>d.statut==='Formation en cours').reduce((a,d)=>a+effectiveReste(d),0);
+  const resteAttente = DOSSIERS.filter(d=>d.statut==='Formation terminée - en attente de règlement').reduce((a,d)=>a+effectiveReste(d),0);
+  const resteRupture = DOSSIERS.filter(d=>d.statut==='Rupture de contrat').reduce((a,d)=>a+effectiveReste(d),0);
+  document.getElementById('kpi-reste-sub').innerHTML =
+    `${nbAttente} dossier(s) · dont ${fmtEURshort(resteEnCours)} en cours, ${fmtEURshort(resteAttente)} en attente, ${fmtEURshort(resteRupture)} en rupture`
+    + (stoppedList.length ? ` · <span style="color:#A13A2E;">${stoppedList.length} exclu(s) car arrêté/refusé</span>` : '');
+
+  document.getElementById('reconciliation-title').textContent = `Composition du reste à percevoir (${fmtEURshort(totalResteEff)})`;
+  const nbEnCours = DOSSIERS.filter(d=>d.statut==='Formation en cours' && effectiveReste(d)>0.01).length;
+  const nbAttenteOnly = DOSSIERS.filter(d=>d.statut==='Formation terminée - en attente de règlement' && effectiveReste(d)>0.01).length;
+  const nbRupture = DOSSIERS.filter(d=>d.statut==='Rupture de contrat' && effectiveReste(d)>0.01).length;
+  document.getElementById('reconciliation-body').innerHTML = `
+    <tr>
+      <td><span class="pill pill-cours">Formation en cours</span></td>
+      <td class="num">${nbEnCours}</td>
+      <td class="num">${fmtEUR(resteEnCours)}</td>
+      <td class="small-muted">Onglet « Dossiers en cours » — normal, la formation n'est pas finie</td>
+    </tr>
+    <tr>
+      <td><span class="pill pill-attente">Formation terminée, en attente</span></td>
+      <td class="num">${nbAttenteOnly}</td>
+      <td class="num">${fmtEUR(resteAttente)}</td>
+      <td class="small-muted">Onglet « En attente de paiement » — à relancer en priorité</td>
+    </tr>
+    <tr>
+      <td><span class="pill pill-rupture">Rupture de contrat</span></td>
+      <td class="num">${nbRupture}</td>
+      <td class="num">${fmtEUR(resteRupture)}</td>
+      <td class="small-muted">Onglet « En attente de paiement » (section ruptures) — à vérifier / clôturer</td>
+    </tr>
+    <tr style="font-weight:600;">
+      <td>Total</td>
+      <td class="num">${nbEnCours+nbAttenteOnly+nbRupture}</td>
+      <td class="num">${fmtEUR(resteEnCours+resteAttente+resteRupture)}</td>
+      <td class="small-muted"></td>
+    </tr>`;
+
+  document.getElementById('kpi-impaye').textContent = fmtEURshort(totalImpaye);
+  document.getElementById('kpi-impaye-sub').textContent = facturesImpayees.length + ' facture(s) non soldée(s)';
+
+  // Ring chart
+  const pct = totalRegle/totalEngage*100;
+  makeChart('ringChart', {
+    type:'doughnut',
+    data:{
+      datasets:[{
+        data:[pct, 100-pct],
+        backgroundColor:['#14432A','#E4EEE6'],
+        borderWidth:0,
+        cutout:'74%',
+      }]
+    },
+    options:{
+      plugins:{legend:{display:false}, tooltip:{enabled:false}},
+      animation:{animateRotate:true, duration:900},
+    },
+    plugins:[{
+      id:'centerText',
+      afterDraw(chart){
+        const {ctx, chartArea:{width,height,left,top}} = chart;
+        ctx.save();
+        ctx.font = "600 26px 'IBM Plex Mono', monospace";
+        ctx.fillStyle = '#14432A';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(pct.toFixed(0)+'%', left+width/2, top+height/2 - 6);
+        ctx.font = "500 11px 'Inter', sans-serif";
+        ctx.fillStyle = '#4B5A4F';
+        ctx.fillText('réglé', left+width/2, top+height/2 + 16);
+        ctx.restore();
+      }
+    }]
+  });
+
+  // Year chart
+  const years = [...new Set(DOSSIERS.map(d=>d.debut ? d.debut.slice(0,4) : null))].filter(Boolean).sort();
+  const engageByYear = years.map(y=>sum(DOSSIERS.filter(d=>d.debut && d.debut.slice(0,4)===y),'engage'));
+  const regleByYear = years.map(y=>sum(DOSSIERS.filter(d=>d.debut && d.debut.slice(0,4)===y),'regle'));
+  makeChart('yearChart', {
+    type:'bar',
+    data:{
+      labels:years,
+      datasets:[
+        {label:'Engagé', data:engageByYear, backgroundColor:'#B8862F', borderRadius:4, maxBarThickness:38},
+        {label:'Réglé', data:regleByYear, backgroundColor:'#14432A', borderRadius:4, maxBarThickness:38},
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{position:'top', align:'end', labels:{boxWidth:10, font:{family:'Inter', size:12}}}},
+      scales:{
+        y:{ticks:{callback:v=>(v/1000)+'k€', font:{family:'IBM Plex Mono', size:11}}, grid:{color:'#EDE9D9'}},
+        x:{grid:{display:false}, ticks:{font:{family:'Inter', size:12}}}
+      }
+    }
+  });
+
+  // Statut table
+  const statuts = [
+    'Formation en cours',
+    'Formation terminée - en attente de règlement',
+    'Formation terminée - soldé',
+    'Clôturé - soldé',
+    'Rupture de contrat',
+  ];
+  const tbody = document.getElementById('statut-body');
+  tbody.innerHTML = '';
+  statuts.forEach(st=>{
+    const rows = DOSSIERS.filter(d=>d.statut===st);
+    if(rows.length===0) return;
+    const e = sum(rows,'engage'), r = sum(rows,'regle');
+    const resteEff = rows.reduce((a,d)=>a+effectiveReste(d),0);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><span class="pill ${STATUT_PILL[st]||''}">${st}</span></td>
+      <td>${rows.length}</td>
+      <td class="num">${fmtEUR(e)}</td>
+      <td class="num">${fmtEUR(r)}</td>
+      <td class="num">${fmtEUR(resteEff)}</td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('statut-count').textContent = DOSSIERS.length + ' dossiers';
+
+  // Alert banner
+  const facturesRelance = FACTURES.filter(f=>f.etat==='Relancée');
+  if(facturesRelance.length>0 || nbAttenteOnly>0){
+    const bits = [];
+    if(facturesRelance.length>0) bits.push(`<strong>${facturesRelance.length} facture(s) relancée(s)</strong> auprès d'OCAPIAT pour ${fmtEUR(sum(facturesRelance,'ttc'))}`);
+    if(nbAttenteOnly>0) bits.push(`<strong>${nbAttenteOnly} dossier(s)</strong> avec formation terminée en attente de règlement, pour un total de ${fmtEUR(resteAttente)}`);
+    document.getElementById('alert-text').innerHTML = bits.join(' · ') + '.';
+    document.getElementById('alert-banner').style.display = 'flex';
+  } else {
+    document.getElementById('alert-banner').style.display = 'none';
+  }
+
+  renderStoppedSection();
+}
+
+function renderStoppedSection(){
+  let el = document.getElementById('stopped-block');
+  const stoppedList = DOSSIERS.filter(d=>isStopped(d.code));
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'stopped-block';
+    el.className = 'block';
+    document.getElementById('sec-apercu').appendChild(el);
+  }
+  if(stoppedList.length===0){ el.innerHTML=''; return; }
+  el.innerHTML = `
+    <div class="block-head">
+      <h2>Dossiers marqués arrêtés/refusés par un collaborateur</h2>
+      <span class="count">${stoppedList.length} dossier(s) · ${fmtEUR(stoppedList.reduce((a,d)=>a+d.reste,0))} exclus du reste à percevoir</span>
+    </div>
+    <p class="small-muted" style="margin-top:-6px;margin-bottom:14px;">Signalés manuellement car OCAPIAT ne met pas toujours à jour l'état de ses dossiers. Clique sur le bouton pour annuler un marquage.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Intitulé</th><th>Collaborateur(s)</th><th>Raison</th><th class="num">Montant exclu</th><th></th></tr></thead>
+        <tbody>
+          ${stoppedList.map(d=>`
+            <tr>
+              <td>${d.intitule}</td>
+              <td>${fmtCollab(d.collaborateurs)}</td>
+              <td class="small-muted">${(DOSSIER_OVERRIDES[d.code]&&DOSSIER_OVERRIDES[d.code].reason) || '—'}</td>
+              <td class="num">${fmtEUR(d.reste)}</td>
+              <td>${toggleButton(d.code)}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+// ================= EN COURS =================
+function renderCours(){
+  const rows = DOSSIERS.filter(d=>d.statut==='Formation en cours' && !isStopped(d.code)).sort((a,b)=>(a.fin||'').localeCompare(b.fin||''));
+  const tbody = document.getElementById('cours-body');
+  tbody.innerHTML = rows.map(d=>`
+    <tr>
+      <td>${d.intitule}</td>
+      <td>${fmtCollab(d.collaborateurs)}</td>
+      <td class="small-muted">${d.nature}</td>
+      <td>${fmtDateISO(d.debut)}</td>
+      <td>${fmtDateISO(d.fin)}</td>
+      <td class="num">${fmtEUR(d.engage)}</td>
+      <td class="num">${fmtEUR(d.regle)}</td>
+      <td class="num">${fmtEUR(d.reste)}</td>
+      <td>${toggleButton(d.code)}</td>
+    </tr>`).join('') || `<tr><td colspan="9" class="empty-state">Aucun dossier en cours</td></tr>`;
+  document.getElementById('cours-count').textContent = rows.length + ' dossier(s) · ' + fmtEUR(sum(rows,'reste')) + ' restant à régler sur formations en cours';
+}
+
+// ================= EN ATTENTE =================
+function renderAttente(){
+  const rows = DOSSIERS.filter(d=>d.statut==='Formation terminée - en attente de règlement' && !isStopped(d.code)).sort((a,b)=>(a.fin||'').localeCompare(b.fin||''));
+  const tbody = document.getElementById('attente-body');
+  tbody.innerHTML = rows.map(d=>`
+    <tr>
+      <td>${d.intitule}</td>
+      <td>${fmtCollab(d.collaborateurs)}</td>
+      <td class="small-muted">${d.nature}</td>
+      <td>${fmtDateISO(d.fin)}</td>
+      <td class="num">${fmtEUR(d.engage)}</td>
+      <td class="num">${fmtEUR(d.regle)}</td>
+      <td class="num" style="color:#A13A2E;font-weight:600;">${fmtEUR(d.reste)}</td>
+      <td>${toggleButton(d.code)}</td>
+    </tr>`).join('') || `<tr><td colspan="8" class="empty-state">Aucun dossier en attente</td></tr>`;
+  document.getElementById('attente-count').textContent = rows.length + ' dossier(s) · ' + fmtEUR(sum(rows,'reste')) + ' au total';
+
+  const rupt = DOSSIERS.filter(d=>d.statut==='Rupture de contrat' && !isStopped(d.code));
+  document.getElementById('rupture-body').innerHTML = rupt.map(d=>`
+    <tr>
+      <td>${d.intitule}</td>
+      <td>${fmtCollab(d.collaborateurs)}</td>
+      <td class="small-muted">${d.nature}</td>
+      <td>${fmtDateISO(d.debut)}</td>
+      <td>${fmtDateISO(d.fin)}</td>
+      <td class="num">${fmtEUR(d.engage)}</td>
+      <td class="num">${fmtEUR(d.regle)}</td>
+      <td>${toggleButton(d.code)}</td>
+    </tr>`).join('') || `<tr><td colspan="8" class="empty-state">Aucune rupture</td></tr>`;
+  document.getElementById('rupture-count').textContent = rupt.length + ' dossier(s) · ' + fmtEUR(sum(rupt,'engage')) + ' engagés';
+}
+
+// ================= FACTURES =================
+let facturesFilter = 'all';
+function renderFactures(){
+  let rows = [...FACTURES].sort((a,b)=>{
+    const pa = a.date_facture.split('/').reverse().join('');
+    const pb = b.date_facture.split('/').reverse().join('');
+    return pb.localeCompare(pa);
+  });
+  if(facturesFilter==='certain') rows = rows.filter(f=>f.collab_status==='certain');
+  else if(facturesFilter!=='all') rows = rows.filter(f=>f.payee===facturesFilter);
+  const tbody = document.getElementById('factures-body');
+  tbody.innerHTML = rows.map(f=>{
+    let etatPill = 'pill-payee';
+    if(f.etat==='Annulée') etatPill='pill-annulee';
+    else if(f.etat==='Relancée') etatPill='pill-relance';
+
+    let collabCell;
+    if(f.collab_status==='certain'){
+      const srcIcon = f.collab_source && f.collab_source.includes('officiel') ? '📄' : '≈';
+      collabCell = `${f.collab_candidates[0]} <span class="small-muted" title="${(f.collab_source||'').replace(/"/g,'&quot;')}">${srcIcon}</span>`;
+    } else if(f.collab_status==='ambigu'){
+      const list = f.collab_candidates.join(', ');
+      collabCell = `<span class="small-muted" title="${list.replace(/"/g,'&quot;')}">${f.collab_candidates.length} candidats possibles (montant partagé)</span>`;
+    } else {
+      collabCell = `<span class="small-muted">—</span>`;
+    }
+
+    return `<tr>
+      <td>${f.ref}</td>
+      <td>${collabCell}</td>
+      <td>${f.date_facture}</td>
+      <td>${f.date_paiement && f.date_paiement!=='-' ? f.date_paiement : '—'}</td>
+      <td><span class="pill ${etatPill}">${f.etat}</span></td>
+      <td class="num">${fmtEUR(f.ht)}</td>
+      <td class="num">${fmtEUR(f.ttc)}</td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="7" class="empty-state">Aucune facture</td></tr>`;
+  const nbCertain = FACTURES.filter(f=>f.collab_status==='certain').length;
+  document.getElementById('factures-count').textContent = rows.length + ' facture(s) · ' + fmtEUR(sum(rows,'ttc')) + ' TTC · ' + nbCertain + '/' + FACTURES.length + ' collaborateurs identifiés avec certitude';
+}
+document.querySelectorAll('#factures-chips .chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('#factures-chips .chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    facturesFilter = chip.dataset.filter;
+    renderFactures();
+  });
+});
+
+// ================= VIREMENTS =================
+function renderVirements(){
+  const rows = [...VIREMENTS].sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('virements-body').innerHTML = rows.map(v=>`
+    <tr><td>${fmtDateISO(v.date)}</td><td class="num">${fmtEUR(v.montant)}</td></tr>
+  `).join('');
+  document.getElementById('virements-count').textContent = rows.length + ' virement(s) · ' + fmtEUR(sum(VIREMENTS,'montant')) + ' encaissés depuis 2021';
+
+  const years = [...new Set(VIREMENTS.map(v=>v.date.slice(0,4)))].sort();
+  const totals = years.map(y=>sum(VIREMENTS.filter(v=>v.date.slice(0,4)===y),'montant'));
+  makeChart('virementsChart', {
+    type:'bar',
+    data:{labels:years, datasets:[{data:totals, backgroundColor:'#5C8A66', borderRadius:5, maxBarThickness:44}]},
+    options:{
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:(ctx)=>fmtEUR(ctx.raw)}}},
+      scales:{
+        y:{ticks:{callback:v=>(v/1000)+'k€', font:{family:'IBM Plex Mono', size:11}}, grid:{color:'#EDE9D9'}},
+        x:{grid:{display:false}, ticks:{font:{family:'Inter', size:12}}}
+      }
+    }
+  });
+}
+
+// ================= TOUS =================
+let tousSort = {key:'fin', dir:1};
+let tousStatutFilter = 'all';
+let tousSearch = '';
+
+function buildTousChips(){
+  const statuts = [...new Set(DOSSIERS.map(d=>d.statut))];
+  const container = document.getElementById('tous-chips');
+  statuts.forEach(st=>{
+    const b = document.createElement('button');
+    b.className='chip'; b.dataset.filter = st; b.textContent = st;
+    b.addEventListener('click', ()=>{
+      document.querySelectorAll('#tous-chips .chip').forEach(c=>c.classList.remove('active'));
+      b.classList.add('active');
+      tousStatutFilter = st;
+      renderTous();
+    });
+    container.appendChild(b);
+  });
+  container.querySelector('[data-filter="all"]').addEventListener('click', function(){
+    document.querySelectorAll('#tous-chips .chip').forEach(c=>c.classList.remove('active'));
+    this.classList.add('active');
+    tousStatutFilter = 'all';
+    renderTous();
+  });
+}
+
+function renderTous(){
+  let rows = [...DOSSIERS];
+  if(tousStatutFilter!=='all') rows = rows.filter(d=>d.statut===tousStatutFilter);
+  if(tousSearch.trim()){
+    const q = tousSearch.toLowerCase();
+    rows = rows.filter(d=>
+      (d.intitule||'').toLowerCase().includes(q) ||
+      (d.nature||'').toLowerCase().includes(q) ||
+      (d.collaborateurs||[]).join(' ').toLowerCase().includes(q)
+    );
+  }
+  rows.sort((a,b)=>{
+    let va = a[tousSort.key], vb = b[tousSort.key];
+    if(typeof va === 'string') va = va || '';
+    if(typeof vb === 'string') vb = vb || '';
+    if(va<vb) return -1*tousSort.dir;
+    if(va>vb) return 1*tousSort.dir;
+    return 0;
+  });
+  document.getElementById('tous-body').innerHTML = rows.map(d=>`
+    <tr>
+      <td>${d.intitule}</td>
+      <td>${fmtCollab(d.collaborateurs)}</td>
+      <td class="small-muted">${d.nature}</td>
+      <td><span class="pill ${STATUT_PILL[d.statut]||''}">${d.statut}</span>${stoppedBadge(d.code)}</td>
+      <td>${fmtDateISO(d.debut)}</td>
+      <td>${fmtDateISO(d.fin)}</td>
+      <td class="num">${fmtEUR(d.engage)}</td>
+      <td class="num">${fmtEUR(d.regle)}</td>
+      <td class="num">${fmtEUR(effectiveReste(d))}</td>
+      <td>${toggleButton(d.code)}</td>
+    </tr>`).join('') || `<tr><td colspan="10" class="empty-state">Aucun résultat</td></tr>`;
+  document.getElementById('tous-count').textContent = rows.length + ' dossier(s)';
+}
+
+function renderAll(){
+  renderApercu();
+  renderCours();
+  renderAttente();
+  renderTous();
+}
+
+document.querySelectorAll('#sec-tous thead th[data-key]').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.key;
+    if(tousSort.key===key) tousSort.dir *= -1;
+    else { tousSort.key = key; tousSort.dir = 1; }
+    document.querySelectorAll('#sec-tous thead .arrow').forEach(a=>a.textContent='');
+    th.querySelector('.arrow').textContent = tousSort.dir===1 ? '▲' : '▼';
+    renderTous();
+  });
+});
+document.getElementById('tous-search').addEventListener('input', (e)=>{
+  tousSearch = e.target.value;
+  renderTous();
+});
+
+// ---------- init ----------
+buildTousChips();
+renderAll();
+renderFactures();
+renderVirements();
+initOverrides(); // charge les marquages partagés puis re-render (renderAll appelé dans initOverrides)
+
+</script>
+</body>
+</html>
